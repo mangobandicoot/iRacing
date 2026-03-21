@@ -1802,10 +1802,29 @@ function maybeFireUnpromptedCallout(state, seriesId, result) {
 
   const isPositive = useProps || line.includes('real deal') || line.includes('shoutout') || line.includes('props');
 
+  // Apply immediate passive effect — paddock talk has weight
+  if (isPositive) {
+    state.reputation = Math.max(0, state.reputation + rand(1,3));
+    state.fans = Math.max(0, state.fans + rand(50,200));
+    // Push toward friend/racing_rival
+    touchRival(state.rivals, name, 'close', true);
+  } else {
+    // Shade — nudge toward rivalry, no rep hit unless they're already a rival
+    const existing = (state.rivals||[]).find(r=>r.name===name);
+    const rel = existing ? relationship(existing) : null;
+    if (rel==='rival'||rel==='frenemy') {
+      state.reputation = Math.max(0, state.reputation - 1);
+    }
+    touchRival(state.rivals, name, 'incident', false);
+  }
+
+  const effect = isPositive ? 'rep_fans' : 'none';
   state.dramaQueue.push({
     id: 'unprompted_'+uid(),
     title: isPositive ? `${name} Mentions You` : `${name} Has Opinions`,
-    effect: 'none',
+    effect,
+    value: isPositive ? rand(1,3) : 0,
+    fans: isPositive ? rand(50,200) : 0,
     desc: line,
     valence: isPositive ? 'good' : 'neutral',
     _isCallout: true,
