@@ -1,0 +1,226 @@
+Rivalry System (Full Implementation)
+
+The groundwork may exist, but it needs to be fully active.
+
+Add:
+	•	automatic rival generation between drivers
+	•	AI vs AI rivalries
+	•	rivalry changes after incidents or races
+	•	rivalry persistence across seasons
+
+UI additions:
+	•	rivals tab
+	•	rivalry indicators in standings and results
+	•	rival highlights during races
+
+Behavior changes:
+	•	rivals drive more aggressively
+	•	rivals respond to incidents
+	•	rivals appear in race commentary
+
+⸻
+
+Sponsor System
+
+Add the complete sponsor structure.
+
+Needs:
+	•	sponsor offers
+	•	sponsor goals tied to performance
+	•	sponsor contracts
+	•	sponsor reputation tracking
+
+Behavior:
+	•	sponsors evaluate driver performance
+	•	sponsors can renew, upgrade, or drop drivers
+	•	higher series unlock better sponsors
+
+UI:
+	•	sponsors tab
+	•	contract offers panel
+	•	sponsor status display
+
+⸻
+
+Team Management System
+
+You planned team ownership, which isn’t fully implemented yet.
+
+Add:
+	•	own a team
+	•	hire drivers
+	•	fire drivers
+	•	manage roster
+
+Optional later:
+	•	multiple teams
+	•	AI team management
+
+UI:
+	•	teams tab
+	•	team roster display
+
+⸻
+
+Fan Growth System (Series Scaling)
+
+You mentioned this but it likely isn’t tuned yet.
+
+Add:
+	•	fan growth scaling by series level
+	•	realistic fan numbers for higher tiers
+	•	AI fan growth balance
+
+Example behavior:
+	•	mini stock drivers grow slowly
+	•	top series drivers gain large fan numbers
+
+⸻
+
+Pre-Race Commentary System
+
+Add short commentary before races.
+
+Include:
+	•	recent performance
+	•	rival presence
+	•	track history
+	•	expectations
+
+Length:
+1–3 sentences
+
+Appears:
+before qualifying
+or before race start
+
+⸻
+
+Track Performance Tracking
+
+Add a system that tracks driver performance at each track.
+
+Needed for:
+	•	best track
+	•	worst track
+	•	dashboard stats
+	•	commentary
+
+Also useful for:
+AI strategy later.
+
+⸻
+
+Special Event System
+
+Your endurance event idea.
+
+Add:
+special races like:
+	•	Watkins Glen Enduro
+	•	Nürburgring 24h
+	•	Spa endurance
+
+Rules:
+	•	invite-based entry
+	•	reputation requirement
+	•	high entry cost if reputation is low
+
+Goal:
+make them rare and meaningful.
+
+⸻
+
+International Driver Expansion
+
+Upgrade the driver generation system.
+
+Add:
+	•	region-based names
+	•	more international drivers in special events
+	•	still mostly American drivers in regular series
+
+Regions:
+Europe
+Africa
+Asia
+South America
+Central America
+Australia
+
+⸻
+
+Contract Screen Improvements
+
+Small UI fix you mentioned.
+
+Change:
+move contract offers above PR section.
+
+Not complicated but important for usability.
+
+⸻
+
+Settings Improvements
+
+Add:
+
+Display where save data is stored locally.
+
+So players know where the memory files live.
+
+⸻
+
+Race and Season Summary Improvements
+
+You already have summaries but you wanted them expanded.
+
+Improve:
+race summaries
+season summaries
+
+Add:
+more variety
+more narrative variation
+less repetition
+
+Remove:
+API key requirement (if still there).
+
+⸻
+
+Player Incident Response System
+
+This one is important for immersion.
+
+Add:
+post-incident responses the player can choose.
+
+Examples:
+call out rival
+ignore incident
+praise teammate
+escalate feud
+
+AI drivers should respond back.
+
+This ties directly into:
+rivalries
+relationships
+drama events
+
+⸻
+
+Things That Are Probably Already Done
+
+Based on your code and what I saw.
+
+You likely already have:
+	•	race scenario engine
+	•	event modal system
+	•	driver generation
+	•	state selection system
+	•	schedule system
+	•	standings system
+	•	UI framework
+	•	race result flow
