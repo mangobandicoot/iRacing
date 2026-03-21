@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Full Throttle v1.6beta — iRacing Career RPG</title>
+  
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -382,6 +383,8 @@ button:disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
 
 // ─── VERSION ─────────────────────────────────────────────────────────────────
 const APP_VERSION = 'v1.5.2';
+  const DEBUG_FORCE_INJURY = false; // set true to force player injury every race for testing
+
 // ─── HOME STATES ─────────────────────────────────────────────────────────────
 const US_STATES = [
   'AL','AR','AZ','CA','CO','CT','DE','FL','GA','IA','ID','IL','IN','KS','KY',
@@ -6102,8 +6105,8 @@ function tickAIInjuries(state, seriesId) {
   });
 }
 function rollInjuryChance(result) {
-  // Base chance per race
-  let chance = 0.04; // 4% base
+  if (typeof DEBUG_FORCE_INJURY !== 'true' && DEBUG_FORCE_INJURY) return true;
+  let chance = 0.04;
   if (result.dnf) chance += 0.08;
   if ((result.incidentDrivers||[]).length > 0) chance += 0.04;
   if (result.dnfReason && /crash|rollover|fire|wall|flip/i.test(result.dnfReason)) chance += 0.10;
