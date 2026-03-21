@@ -4387,7 +4387,7 @@ function renderContracts() {
             ['Entry Fee',fmtMoney(offer.entryFee||(getSeries(offer.seriesId)&&getSeries(offer.seriesId).fee)||0),'#EF4444'],
             ['Win Bonus',fmtMoney(offer.winBonus),'#F59E0B'],
             ['Req Finish',`Top ${offer.reqFinish}`,'#CBD5E1'],
-            ['Teammates', offer.teammates&&offer.teammates.length>0 ? `${offer.teammates.filter(t=>t.name).length}/${offer.teammates.length} filled` : 'None', '#94A3B8'],
+['Teammates', offer.teammates&&offer.teammates.filter(t=>t&&t.name).length>0 ? `${offer.teammates.filter(t=>t&&t.name).length}/${offer.teammates.length} slot${offer.teammates.length>1?'s':''}` : 'None', '#94A3B8'],
           ].map(([l,v,c])=>h('div',{style:{background:'#060A10',borderRadius:'7px',padding:'9px 11px',border:'1px solid #1E2433'}},
             h('div',{style:{fontSize:'12px',color:'#94A3B8',textTransform:'uppercase',letterSpacing:'0.06em'}},l),
             h('div',{style:{fontSize:'14px',fontWeight:800,color:c||'#E5E7EB',marginTop:'2px'}},v),
