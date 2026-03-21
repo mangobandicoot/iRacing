@@ -2064,17 +2064,105 @@ function calcMerchRevenue(fans) {
 function calcPrize(seriesId, pos, fs) {
   const s = getSeries(seriesId);
   if (pos===1) return s.pay + s.winBonus;
-  // Steeper drop-off: top 3 get decent money, back half gets much less
-  // pos 2 = 70%, pos 3 = 55%, pos 5 = 40%, pos 10 = 25%, tail = ~10%
   const pct = Math.max(0.10, 0.70 - ((pos-2) / (fs-2)) * 0.60);
   return Math.floor(s.pay * pct);
+}
+
+// ─── AI RIVALRY SEEDING ──────────────────────────────────────────────────────
+function seedAIRivalries(drivers) {
+  drivers.forEach(d => { d.aiRivals=[]; d.aiFriends=[]; });
+  const seriesGroups = {};
+  drivers.forEach(d => {
+    if (!seriesGroups[d.currentSeriesId]) seriesGroups[d.currentSeriesId] = [];
+    seriesGroups[d.currentSeriesId].push(d);
+  });
+  Object.values(seriesGroups).forEach(field => {
+    if (field.length < 4) return;
+    const shuffled = shuffle(field);
+    const rivalCount = rand(2, Math.min(4, Math.floor(field.length / 4)));
+    for (let i = 0; i < rivalCount; i++) {
+      const a = shuffled[i*2];
+      const b = shuffled[i*2+1];
+      if (!a || !b) break;
+      if (!a.aiRivals.includes(b.name)) a.aiRivals.push(b.name);
+      if (!b.aiRivals.includes(a.name)) b.aiRivals.push(a.name);
+    }
+    const friendStart = rivalCount * 2;
+    const friendCount = rand(2, Math.min(3, Math.floor((field.length - friendStart) / 2)));
+    for (let i = 0; i < friendCount; i++) {
+      const a = shuffled[friendStart + i*2];
+      const b = shuffled[friendStart + i*2 + 1];
+      if (!a || !b) break;
+      if (!a.aiFriends.includes(b.name)) a.aiFriends.push(b.name);
+      if (!b.aiFriends.includes(a.name)) b.aiFriends.push(a.name);
+    }
+  });
+}
+
+// ─── PRE-RACE COMMENTARY ─────────────────────────────────────────────────────
+function buildPreRaceNote(seriesId, raceIdx) {
+  const sched = G.schedules[seriesId]||[];
+  const race  = sched[raceIdx];
+  if (!race) return null;
+  const notes = [];
+
+  const last5 = G.raceHistory.slice(-5).filter(r=>!r.dq);
+  if (last5.length >= 3) {
+    const wins   = last5.filter(r=>r.pos===1&&!r.dnf).length;
+    const dnfs   = last5.filter(r=>r.dnf).length;
+    const avgPos = last5.filter(r=>!r.dnf).reduce((a,r,_,arr)=>a+(r.pos/arr.length),0);
+    if (wins >= 2)        notes.push(`${wins} wins in the last ${last5.length} races. Momentum is real right now.`);
+    else if (dnfs >= 2)   notes.push(`Two DNFs in the last stretch. Car needs to finish today.`);
+    else if (avgPos <= 4) notes.push(`Averaging P${avgPos.toFixed(1)} over the last few races. Quietly on a run.`);
+    else if (avgPos > 12) notes.push(`Results have been tough lately. Something needs to change today.`);
+  }
+
+  const trackHistory = G.raceHistory.filter(r=>r.track===race.track&&!r.dq);
+  if (trackHistory.length >= 2) {
+    const wins    = trackHistory.filter(r=>r.pos===1&&!r.dnf).length;
+    const dnfRate = trackHistory.filter(r=>r.dnf).length / trackHistory.length;
+    const avgPos  = trackHistory.filter(r=>!r.dnf).reduce((a,r,_,arr)=>a+(r.pos/arr.length),0);
+    if (wins >= 2)         notes.push(`${race.track} has been a happy hunting ground. ${wins} wins here.`);
+    else if (dnfRate>=0.5) notes.push(`This track has been a nightmare. DNF in ${Math.round(dnfRate*100)}% of visits.`);
+    else if (avgPos <= 4)  notes.push(`Historically strong at ${race.track}. Top-four average over ${trackHistory.length} visits.`);
+    else if (avgPos > 12)  notes.push(`${race.track} hasn't been kind. Looking to change that today.`);
+  } else if (trackHistory.length === 0) {
+    notes.push(`First time at ${race.track}. No data. Just go find out.`);
+  }
+
+  const knownRivals  = (G.rivals||[]).filter(r=>['rival','frenemy'].includes(relationship(r)));
+  const knownFriends = (G.rivals||[]).filter(r=>['friend','racing_rival'].includes(relationship(r)));
+  if (knownRivals.length === 1) {
+    notes.push(`${knownRivals[0].name} is in this series. Keep your head on a swivel.`);
+  } else if (knownRivals.length >= 2) {
+    notes.push(`${knownRivals[0].name} and ${knownRivals[1].name} are both out there. Could be a long day.`);
+  }
+  if (knownFriends.length >= 1 && Math.random()<0.5) {
+    notes.push(`${knownFriends[0].name} has been one of the cleaner racers out here. Good person to be near.`);
+  }
+
+  const myPts = G.championshipPoints[seriesId]||0;
+  const field = G.seriesFields[seriesId]||{};
+  const allPts = [{pts:myPts,isPlayer:true},...Object.entries(field).map(([n,d])=>({pts:d.points,name:n}))].sort((a,b)=>b.pts-a.pts);
+  const myPos = allPts.findIndex(r=>r.isPlayer)+1;
+  const racesLeft = sched.filter(r=>!r.result).length;
+  if (myPos === 1 && allPts.length > 1 && racesLeft <= 4) {
+    const gap = myPts - (allPts[1]?.pts||0);
+    notes.push(`Championship leader by ${gap} points with ${racesLeft} to go. Protect it.`);
+  } else if (myPos > 1 && racesLeft <= 4 && allPts.length > 1) {
+    const gap = (allPts[0]?.pts||0) - myPts;
+    notes.push(`${gap} points back with ${racesLeft} races left. Need a strong run.`);
+  }
+
+  if (!notes.length) return null;
+  return notes[rand(0, notes.length-1)];
 }
 
 // ─── INITIAL STATE ───────────────────────────────────────────────────────────
 function initState(name) {
   return {
     driverName: name,
-    homeState: 'NC', // updated at setup
+    homeState: 'ME',
     season: 1, week: 1,
     money: 5000, reputation: 0, fans: 0,
     wins:0, top5s:0, starts:0, poles:0,
@@ -2111,7 +2199,11 @@ function initState(name) {
       free: JSON.parse(JSON.stringify(FREE_TRACKS)),
       paid: JSON.parse(JSON.stringify(PAID_TRACKS)),
     },
-    drivers: generateInitialDriverPool(),
+    drivers: (() => {
+      const pool = generateInitialDriverPool();
+      seedAIRivalries(pool);
+      return pool;
+    })(),
     log: [`Season 1. $5,000, a dream, and no business being on a race track. Let's go.`],
     settings: { apiKey:'' },
   };
@@ -2130,24 +2222,44 @@ function getDriversForSeries(state, seriesId) {
 function findOrCreateDriver(state, name) {
   const lower = name.toLowerCase().trim();
   let d = state.drivers.find(d=>d.name.toLowerCase()===lower);
-  if (!d) {
-    // New name encountered — add to database
+if (!d) {
     d = createDriver(name, rand(30,70), 'mini_stock', 'known');
     d.source = 'known';
+    d.aiRivals  = [];
+    d.aiFriends = [];
     state.drivers.push(d);
+    // Seed pre-existing relationships with other known drivers in the same series
+    // — the world didn't start when the player showed up
+    const peers = state.drivers.filter(p =>
+      p !== d &&
+      p.currentSeriesId === d.currentSeriesId &&
+      (p.aiRivals||[]).length + (p.aiFriends||[]).length < 4
+    );
+    if (peers.length) {
+      const peer = peers[rand(0, peers.length-1)];
+      if (Math.random() < 0.35) {
+        // Pre-existing rivalry
+        if (!d.aiRivals.includes(peer.name))       d.aiRivals.push(peer.name);
+        if (!(peer.aiRivals||[]).includes(d.name)) { peer.aiRivals=peer.aiRivals||[]; peer.aiRivals.push(d.name); }
+      } else if (Math.random() < 0.40) {
+        // Pre-existing friendship
+        if (!d.aiFriends.includes(peer.name))       d.aiFriends.push(peer.name);
+        if (!(peer.aiFriends||[]).includes(d.name)) { peer.aiFriends=peer.aiFriends||[]; peer.aiFriends.push(d.name); }
+      }
+    }
     addLog(state, `📋 New driver added to database: ${name}`);
   } else if (d.source==='generated') {
-    d.source = 'known'; // promote to known
+    d.source = 'known';
+    if (!d.aiRivals)  d.aiRivals  = [];
+    if (!d.aiFriends) d.aiFriends = [];
   }
   return d;
 }
 
 function integrateFinishOrder(state, seriesId, finishOrder) {
-  // finishOrder: [{name, lapTime, gap, isPlayer}]
   finishOrder.forEach(entry => {
     if (entry.isPlayer || !entry.name) return;
     const d = findOrCreateDriver(state, entry.name);
-    // Assign to this series if not already there
     if (!d.currentSeriesId || d.currentSeriesId!==seriesId) {
       d.currentSeriesId = seriesId;
     }
