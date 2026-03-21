@@ -337,14 +337,20 @@ button:disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
         <input id="driver-name-input" type="text" placeholder="Enter your name..." maxlength="28" required autocomplete="off">
         <div style="font-size:12px;color:#CBD5E1;margin-bottom:6px;margin-top:14px;text-transform:uppercase;letter-spacing:0.1em">Home State</div>
         <select id="driver-state-input" style="width:100%;margin-bottom:16px;font-size:16px;font-weight:600;text-align:center"></select>
-        <script>
-          (function(){
+     <script>
+          document.addEventListener('DOMContentLoaded',function(){
             const sel=document.getElementById('driver-state-input');
             if(!sel||sel.options.length>0) return;
             const states=typeof US_STATES!=='undefined'?US_STATES:['NC','VA','TN','GA','SC','FL','TX','OH','IN','KY','WI','IL','PA','MI','International'];
             const names=typeof US_STATE_NAMES!=='undefined'?US_STATE_NAMES:{};
-            states.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=(names[s]||s);if(s==='NC')o.selected=true;sel.appendChild(o);});
-          })();
+            const intlRegions=['Europe','Africa','Asia','South America','Central America','Australia'];
+            // US states first
+            states.filter(s=>s!=='International').forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=(names[s]||s);if(s==='ME')o.selected=true;sel.appendChild(o);});
+            // Separator
+            const sep=document.createElement('option');sep.disabled=true;sep.textContent='── International ──';sel.appendChild(sep);
+            // International regions
+            intlRegions.forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r;sel.appendChild(o);});
+          });
         </script>
         <div class="setup-hint">Run your seasons in iRacing offline mode, then come back and enter results. The app tracks contracts, sponsors, fans, rivals, championship points, repairs, and simulates AI driver careers in the background.</div>
         <button type="submit" class="btn btn-lg btn-primary btn-full">START CAREER &#8594;</button>
@@ -799,34 +805,65 @@ function doSocialPost(type) {
 
 // ─── AI DRIVER NAME POOL ─────────────────────────────────────────────────────
 const AI_FIRST = [
-  'Kyle','Jimmy','Dale','Bobby','Ronnie','Chase','Tyler','Rick','Austin','Sammy',
-  'Devin','Nate','Cole','Brady','Zach','Marcus','Joey','Pete','Garrett','Hank',
-  'Luke','Cody','Ray','Brent','Travis','Dustin','Mitch','Greg','Aaron','Vince',
-  'Drew','Lenny','Stan','Wayne','Danny','Trent','Seth','Ricky','Caleb','Wade',
-  'Jason','Connor','Mike','Phil','Gary','Dave','Shawn','Curt','Neil','Vance',
-  'Brett','Derek','Shane','Lance','Todd','Denny','Clint','Regan','David','Matt',
-  'Blake','Carson','Hunter','Logan','Mason','Carter','Parker','Wyatt','Colton','Reid',
-  'Jeb','Earl','Floyd','Cecil','Lonnie','Doyle','Merle','Dwayne','Leroy','Clyde',
-  'Scotty','Robby','Timmy','Donnie','Ronny','Kenny','Rusty','Buddy','Wally','Gus',
-  'Harrison','Jackson','Preston','Grady','Crawford','Bennett','Tucker','Slade','Knox','Cruz',
+  'Kyle','Jimmy','Dale','Bobby','Ronnie','Chase','Tyler','Rick','Austin','Hank',
+  'Luke','Cody','Ray','Brent','Travis','Mitch','Greg','Aaron','Vince','Wade',
+  'Jason','Connor','Mike','Gary','Dave','Shawn','Neil','Vance','Brett','Derek',
+  'Shane','Lance','Todd','Denny','Clint','David','Matt','Blake','Carson','Logan',
+  'Jeb','Earl','Floyd','Lonnie','Doyle','Merle','Dwayne','Leroy','Clyde','Gus',
+  'Scotty','Robby','Donnie','Kenny','Rusty','Buddy','Grady','Tucker','Knox','Reid',
 ];
-const AI_LAST  = [
-  'McAllister','Hayes','Whitfield','Tremont','Stacks','Duvall','Boone','Cantrell','Phelps','Gross',
-  'Hargrove','Wicker','Farris','Holt','Tunnell','Deen','Ruiz','Slade','Finch','Dillon',
-  'Farber','Marsh','Sutton','Holloway','Yount','Falk','Pruitt','Sable','Tull','Corley',
-  'Paxson','Hobbs','Cutler','Rideout','Kowalski','Malone','Voss','Firth','Lehr','Bale',
-  'Denton','Arnett','Odom','Kissel','Tully','Ingram','Bassett','Pulliam','Dawson','Hensley',
-  'Cope','Speed','Bodine','Wallace','Nemechek','Green','Kenseth','Keller','Waltrip','Labonte',
-  'Earnhardt','Petty','Allison','Yarborough','Parsons','Pearson','Thomas','Craven','Musgrave','Trickle',
-  'Setzer','Combs','Pressley','Grissom','Purvis','Reffner','Sauter','Lund','Weatherly','Lorenzen',
-  'Marcis','Means','Andretti','Mears','Fittipaldi','Benson','Biffle','Burton','Reutimann','Gilliland',
-  'Kahne','Truex','Logano','Almirola','McDowell','Chastain','Preece','Suarez','Hemric','Cindric',
+const AI_LAST = [
+  'McAllister','Hayes','Whitfield','Duvall','Boone','Cantrell','Phelps','Hargrove',
+  'Farris','Holt','Deen','Finch','Dillon','Marsh','Sutton','Holloway','Pruitt',
+  'Corley','Hobbs','Cutler','Rideout','Kowalski','Malone','Voss','Dawson','Hensley',
+  'Cope','Speed','Bodine','Wallace','Nemechek','Kenseth','Waltrip','Labonte',
+  'Earnhardt','Petty','Allison','Yarborough','Pearson','Thomas','Craven','Trickle',
+  'Setzer','Pressley','Grissom','Sauter','Lund','Weatherly','Lorenzen','Marcis',
+  'Andretti','Mears','Biffle','Burton','Kahne','Truex','Logano','Chastain','Preece','Hemric',
 ];
 
+const AI_FIRST_FEMALE = [
+  'Hailie','Natalie','Jessica','Ashley','Courtney','Amber','Brittany','Kelley',
+  'Danica','Jennifer','Tara','Leilani','Sarah','Megan','Kenzie','Reagan',
+  'Caylin','Taylor','Jordan','Peyton','Morgan','Ryann','Brooke','Lindsey',
+  'Crystal','Lacey','Shelby','Savannah','Kayla','Caitlin','Erin','Paige',
+  'Holly','Donna','Lisa','Tammy','Christy','Stacy','Gina','Renee',
+  'Deb','Wanda','Carla','Brenda','Rhonda','Sherry','Vickie','Paula',
+  'Regan','Charlene','June','Loretta','Betty','Connie','Angie','Bobbie',
+  'Trish','Darla','Roxanne','Nadine',
+];
+
+const MIDDLE_INITIALS = 'ABCDEFGHJKLMNPRSTW'.split('');
+
+var _JR_CANDIDATES = {};
+
+function retireDriverAsJrCandidate(driver) {
+  if (!driver || !driver.name) return;
+  const parts = driver.name.replace(/ Jr\.?$/i,'').trim().split(' ');
+  const last = parts[parts.length - 1];
+  if (!last || last.length < 2) return;
+  if (!_JR_CANDIDATES[last]) _JR_CANDIDATES[last] = [];
+  if (!_JR_CANDIDATES[last].includes(driver.name)) {
+    _JR_CANDIDATES[last].push(driver.name);
+  }
+}
+
 function generateAIName() {
-  const name = `${AI_FIRST[rand(0,AI_FIRST.length-1)]} ${AI_LAST[rand(0,AI_LAST.length-1)]}`;
-  // ~12% chance of Jr. suffix — authentic to American short-track culture
-  return Math.random() < 0.12 ? name + ' Jr.' : name;
+  const isFemale = Math.random() < 0.10;
+  const firstPool = isFemale ? AI_FIRST_FEMALE : AI_FIRST;
+  const first = firstPool[rand(0, firstPool.length - 1)];
+  const last  = AI_LAST[rand(0, AI_LAST.length - 1)];
+  const middle = Math.random() < 0.20 ? ` ${MIDDLE_INITIALS[rand(0, MIDDLE_INITIALS.length-1)]}.` : '';
+  let name = `${first}${middle} ${last}`;
+  if (!isFemale) {
+    const hasFather = _JR_CANDIDATES[last] && _JR_CANDIDATES[last].length > 0;
+    if (hasFather) {
+      if (Math.random() < 0.55) name = name + ' Jr.';
+    } else if (Math.random() < 0.05) {
+      name = name + ' Jr.';
+    }
+  }
+  return name;
 }
 
 // ─── RESULT PARSER ───────────────────────────────────────────────────────────
@@ -2433,7 +2470,7 @@ function simulateAISeasons(state) {
     }
   });
 
-  // Apply promotions/demotions
+  /// Apply promotions/demotions
   promotions.forEach(({driver,to})=>{
     driver.currentSeriesId=to;
     const teamList=TEAMS[to]||['Independent'];
@@ -2445,6 +2482,15 @@ function simulateAISeasons(state) {
     const teamList=TEAMS[to]||['Independent'];
     driver.currentTeam=teamList[rand(0,teamList.length-1)];
     addLog(state,`📉 ${driver.name} dropped to ${getSeries(to).short}`);
+    if (getSeries(to)?.tier === 1) retireDriverAsJrCandidate(driver);
+  });
+
+  state.drivers.forEach(d => {
+    if (!d.active) { retireDriverAsJrCandidate(d); return; }
+    const s2 = getSeries(d.currentSeriesId);
+    if (s2?.tier === 1 && d.starts > 60 && d.skill < 35 && Math.random() < 0.15) {
+      retireDriverAsJrCandidate(d);
+    }
   });
   return { promotions, demotions };
 
@@ -3942,12 +3988,22 @@ function renderStandings() {
     rows.forEach((row,idx)=>{
       const isP=row.isPlayer;
       const isTm=!isP&&tmNames.has(row.name.toLowerCase());
+      const rival=!isP?(G.rivals||[]).find(r=>r.name.toLowerCase()===row.name.toLowerCase()):null;
+      const rel=rival?relationship(rival):null;
       const nameColor=isP?s.color:isTm?'#3B82F6':'#D1D5DB';
+      let relBadge=null;
+      if(isTm){
+        const tmRelColor=rel?REL_COLOR[rel]||'#3B82F6':'#3B82F6';
+        const tmRelLabel=rel&&rel!=='acquaintance'?`TEAM · ${REL_LABEL[rel]||rel}`:'TEAM';
+        relBadge=h('span',{style:{fontSize:'10px',color:tmRelColor,marginLeft:'5px',fontWeight:700,background:tmRelColor+'22',border:`1px solid ${tmRelColor}44`,padding:'1px 5px',borderRadius:'3px'}},tmRelLabel);
+      } else if(rel&&rel!=='acquaintance'){
+        relBadge=h('span',{style:{fontSize:'10px',color:REL_COLOR[rel],marginLeft:'5px',fontWeight:700,background:REL_COLOR[rel]+'22',border:`1px solid ${REL_COLOR[rel]}44`,padding:'1px 5px',borderRadius:'3px'}},REL_LABEL[rel]);
+      }
       const tr=h('tr',{className:isP?'player-row':''},
         h('td',{style:{color:idx===0?'#F59E0B':idx<=2?'#CBD5E1':'#94A3B8',fontWeight:800}},idx+1),
         h('td',{style:{color:nameColor}},row.name,
           isP?h('span',{style:{fontSize:'10px',color:s.color,marginLeft:'5px',fontWeight:700}},'YOU'):null,
-          isTm?h('span',{style:{fontSize:'10px',color:'#3B82F6',marginLeft:'5px',fontWeight:700,background:'#1e3a5f',padding:'1px 5px',borderRadius:'3px'}},'TEAM'):null,
+          relBadge,
         ),
         h('td',{style:{fontWeight:isP?800:400,color:isP?s.color:'#E5E7EB'}},row.points),
         h('td',{style:{color:'#CBD5E1'}},row.wins),
@@ -4646,7 +4702,7 @@ function renderSettings() {
     )
   ));
 
-  f.appendChild(h('div',{className:'card'},
+  f.appendChild(h('div',{className:'card',style:{marginBottom:'16px'}},
     cardTitle('Career Info'),
     h('div',{style:{fontSize:'14px',color:'#94A3B8',lineHeight:'1.8'}},
       `Driver: ${G.driverName}`,h('br'),
@@ -4657,6 +4713,27 @@ function renderSettings() {
       `Race history entries: ${(G.raceHistory||[]).length}`,h('br'),
       `Rivals tracked: ${(G.rivals||[]).length}`,h('br'),
       `Log entries: ${(G.log||[]).length}`,
+    )
+  ));
+  f.appendChild(h('div',{className:'card'},
+    cardTitle('Save Data Location'),
+    h('div',{style:{fontSize:'14px',color:'#94A3B8',marginBottom:'10px',lineHeight:'1.7'}},
+      'Your save is stored in your browser\'s ',
+      h('span',{style:{color:'#F9FAFB',fontWeight:700}},'localStorage'),
+      ' under the key ',
+      h('span',{style:{color:'#F59E0B',fontWeight:700,fontFamily:'monospace'}},'ft_save'),
+      '. It persists as long as you don\'t clear browser data for this file.'
+    ),
+    h('div',{style:{background:'#060A10',border:'1px solid #1E2433',borderRadius:'7px',padding:'12px',marginBottom:'12px',fontSize:'13px',color:'#94A3B8',lineHeight:'1.7'}},
+      h('div',{style:{fontWeight:700,color:'#CBD5E1',marginBottom:'4px'}},'To back up your save:'),
+      h('div',null,'1. Click ',h('span',{style:{color:'#F59E0B',fontWeight:700}},'Export Save'),' above'),
+      h('div',null,'2. A ',h('span',{style:{color:'#F59E0B',fontWeight:700,fontFamily:'monospace'}},`full-throttle-s${G.season}.json`),' file downloads to your Downloads folder'),
+      h('div',null,'3. Keep that file safe — it\'s your full career'),
+      h('div',{style:{marginTop:'6px'}},'To restore: click ',h('span',{style:{color:'#F59E0B',fontWeight:700}},'Import Save'),' and pick the .json file'),
+    ),
+    h('div',{style:{fontSize:'13px',color:'#475569'}},
+      '⚠️ Clearing browser cache or site data will wipe your localStorage save. ',
+      h('span',{style:{color:'#F59E0B',fontWeight:600}},'Export regularly.')
     )
   ));
   return f;
@@ -5846,11 +5923,23 @@ function openRaceHistoryModal(seriesId, raceIdx) {
           ...result.finishOrder.map((entry,i) => {
             const isFastest = fastestSec !== null && lapTimeToSeconds(entry.lapTime) === fastestSec;
             const lapColor  = isFastest ? '#EC4899' : '#94A3B8';
+            const isTm=!entry.isPlayer&&(G.teammates||[]).some(t=>t.name.toLowerCase()===entry.name.toLowerCase());
+            const entryRival=!entry.isPlayer?(G.rivals||[]).find(r=>r.name.toLowerCase()===entry.name.toLowerCase()):null;
+            const entryRel=entryRival?relationship(entryRival):null;
+            let entryRelBadge=null;
+            if(isTm){
+              const c=entryRel?REL_COLOR[entryRel]||'#3B82F6':'#3B82F6';
+              const l=entryRel&&entryRel!=='acquaintance'?`TEAM · ${REL_LABEL[entryRel]||entryRel}`:'TEAM';
+              entryRelBadge=h('span',{style:{fontSize:'10px',color:c,marginLeft:'5px',fontWeight:700,background:c+'22',border:`1px solid ${c}44`,padding:'1px 4px',borderRadius:'3px'}},l);
+            } else if(entryRel&&entryRel!=='acquaintance'){
+              entryRelBadge=h('span',{style:{fontSize:'10px',color:REL_COLOR[entryRel],marginLeft:'5px',fontWeight:700,background:REL_COLOR[entryRel]+'22',border:`1px solid ${REL_COLOR[entryRel]}44`,padding:'1px 4px',borderRadius:'3px'}},REL_LABEL[entryRel]);
+            }
             return h('tr',{style:{background:entry.isPlayer?'rgba(245,158,11,0.1)':''}},
               h('td',{style:{fontWeight:entry.isPlayer?800:400,color:i===0?'#F59E0B':i<=2?'#CBD5E1':'#94A3B8'}},i+1),
               h('td',{style:{fontWeight:entry.isPlayer?800:400,color:entry.isPlayer?'#F59E0B':'#D1D5DB'}},
                 entry.name,
                 entry.isPlayer?h('span',{style:{fontSize:'10px',color:'#F59E0B',marginLeft:'5px'}},'YOU'):null,
+                entryRelBadge,
               ),
               h('td',{style:{color:'#94A3B8'}},entry.gap||'—'),
               h('td',{style:{color:lapColor,fontWeight:isFastest?700:400}},
