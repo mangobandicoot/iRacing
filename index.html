@@ -448,45 +448,102 @@ const SERIES = [
 function getSeries(id) { return SERIES.find(s => s.id === id); }
 
 // ─── TRACKS ──────────────────────────────────────────────────────────────────
-const FREE_TRACKS = [
-  // iRacing free oval tracks (confirmed owned)
-  { name:'Charlotte Motor Speedway',           city:'Concord',      state:'NC' },
-  { name:'Langley Speedway',                   city:'Hampton',      state:'VA' },
-  { name:'USA International Speedway',         city:'Lakeland',     state:'FL' },
-  { name:'Southern National Motorsports Park', city:'Kenly',        state:'NC' },
-  { name:'South Boston Speedway',              city:'South Boston', state:'VA' },
-  { name:'Concord Speedway',                   city:'Concord',      state:'NC' },
-  { name:'Oxford Plains Speedway',             city:'Oxford',       state:'ME' },
-  { name:'Lanier National Speedway',           city:'Braselton',    state:'GA' },
-  { name:'Thompson Speedway Motorsports Park', city:'Thompson',     state:'CT' },
-  // Slinger: owned but not free — pins as season finale for mini/street stock
-  { name:'Slinger Speedway',                   city:'Slinger',      state:'WI', fig8:true },
-];
-const PAID_TRACKS = [
-  { name:'Bristol Motor Speedway',         city:'Bristol',          state:'TN' },
-  { name:'Daytona International Speedway', city:'Daytona Beach',    state:'FL' },
-  { name:'Talladega Superspeedway',        city:'Talladega',        state:'AL' },
-  { name:'Martinsville Speedway',          city:'Ridgeway',         state:'VA' },
-  { name:'Richmond Raceway',               city:'Richmond',         state:'VA' },
-  { name:'New Hampshire Motor Speedway',   city:'Loudon',           state:'NH' },
-  { name:'Phoenix Raceway',                city:'Avondale',         state:'AZ' },
-  { name:'Las Vegas Motor Speedway',       city:'Las Vegas',        state:'NV' },
-  { name:'Michigan International Speedway',city:'Brooklyn',         state:'MI' },
-  { name:'Iowa Speedway',                  city:'Newton',           state:'IA' },
-  { name:'Nashville Superspeedway',        city:'Lebanon',          state:'TN' },
-  { name:'Texas Motor Speedway',           city:'Fort Worth',       state:'TX' },
-  { name:'Atlanta Motor Speedway',         city:'Hampton',          state:'GA' },
-  { name:'Pocono Raceway',                 city:'Long Pond',        state:'PA' },
-  { name:'Dover Motor Speedway',           city:'Dover',            state:'DE' },
-  { name:'Kansas Speedway',               city:'Kansas City',       state:'KS' },
-  { name:'Homestead-Miami Speedway',       city:'Homestead',        state:'FL' },
-  { name:'North Wilkesboro Speedway',      city:'North Wilkesboro', state:'NC' },
-  { name:'Darlington Raceway',             city:'Darlington',       state:'SC' },
-  { name:'Gateway Motorsports Park',       city:'Madison',          state:'IL' },
-  { name:'Watkins Glen International',     city:'Watkins Glen',     state:'NY' },
-  { name:'Sonoma Raceway',                 city:'Sonoma',           state:'CA' },
-  { name:'Circuit of the Americas',        city:'Austin',           state:'TX' },
-];
+// Organized by tier. Lower tiers use short tracks; higher tiers use superspeedways.
+// Slinger is the fig8 finale for tier 1-2 series.
+
+const SERIES_TRACKS = {
+  // Tier 1-2: local short tracks
+  local: [
+    { name:'Langley Speedway',                   city:'Hampton',          state:'VA' },
+    { name:'USA International Speedway',         city:'Lakeland',         state:'FL' },
+    { name:'Southern National Motorsports Park', city:'Kenly',            state:'NC' },
+    { name:'South Boston Speedway',              city:'South Boston',     state:'VA' },
+    { name:'Concord Speedway',                   city:'Concord',          state:'NC' },
+    { name:'Oxford Plains Speedway',             city:'Oxford',           state:'ME' },
+    { name:'Lanier National Speedway',           city:'Braselton',        state:'GA' },
+    { name:'Thompson Speedway Motorsports Park', city:'Thompson',         state:'CT' },
+    { name:'Charlotte Motor Speedway',           city:'Concord',          state:'NC' },
+    
+  ],
+  // Tier 3: regional short/intermediate tracks
+  regional: [
+    { name:'Bristol Motor Speedway',             city:'Bristol',          state:'TN' },
+    { name:'Martinsville Speedway',              city:'Ridgeway',         state:'VA' },
+    { name:'Richmond Raceway',                   city:'Richmond',         state:'VA' },
+    { name:'Charlotte Motor Speedway',           city:'Concord',          state:'NC' },
+    { name:'Iowa Speedway',                      city:'Newton',           state:'IA' },
+    { name:'Nashville Superspeedway',            city:'Lebanon',          state:'TN' },
+    { name:'Gateway Motorsports Park',           city:'Madison',          state:'IL' },
+    { name:'North Wilkesboro Speedway',          city:'North Wilkesboro', state:'NC' },
+    { name:'New Hampshire Motor Speedway',       city:'Loudon',           state:'NH' },
+    { name:'Dover Motor Speedway',               city:'Dover',            state:'DE' },
+    { name:'Darlington Raceway',                 city:'Darlington',       state:'SC' },
+    { name:'Phoenix Raceway',                    city:'Avondale',         state:'AZ' },
+    { name:'Martinsville Speedway',              city:'Ridgeway',         state:'VA' },
+    { name:'Richmond Raceway',                   city:'Richmond',         state:'VA' },
+    { name:'Bristol Motor Speedway',             city:'Bristol',          state:'TN' },
+    { name:'Gateway Motorsports Park',           city:'Madison',          state:'IL' },
+    { name:'Iowa Speedway',                      city:'Newton',           state:'IA' },
+    { name:'North Wilkesboro Speedway',          city:'North Wilkesboro', state:'NC' },
+  ],
+  // Tier 4-5: national intermediates and superspeedways
+  national: [
+    { name:'Charlotte Motor Speedway',           city:'Concord',          state:'NC' },
+    { name:'Bristol Motor Speedway',             city:'Bristol',          state:'TN' },
+    { name:'Richmond Raceway',                   city:'Richmond',         state:'VA' },
+    { name:'Martinsville Speedway',              city:'Ridgeway',         state:'VA' },
+    { name:'Dover Motor Speedway',               city:'Dover',            state:'DE' },
+    { name:'New Hampshire Motor Speedway',       city:'Loudon',           state:'NH' },
+    { name:'Phoenix Raceway',                    city:'Avondale',         state:'AZ' },
+    { name:'Las Vegas Motor Speedway',           city:'Las Vegas',        state:'NV' },
+    { name:'Michigan International Speedway',    city:'Brooklyn',         state:'MI' },
+    { name:'Iowa Speedway',                      city:'Newton',           state:'IA' },
+    { name:'Nashville Superspeedway',            city:'Lebanon',          state:'TN' },
+    { name:'Texas Motor Speedway',               city:'Fort Worth',       state:'TX' },
+    { name:'Indianapolis Motor Speedway',        city:'Indianapolis',     state:'IN' },
+    { name:'Pocono Raceway',                     city:'Long Pond',        state:'PA' },
+    { name:'Kansas Speedway',                    city:'Kansas City',      state:'KS' },
+    { name:'Homestead-Miami Speedway',           city:'Homestead',        state:'FL' },
+    { name:'Darlington Raceway',                 city:'Darlington',       state:'SC' },
+    { name:'Daytona International Speedway',     city:'Daytona Beach',    state:'FL' },
+    { name:'Talladega Superspeedway',            city:'Talladega',        state:'AL' },
+    { name:'North Wilkesboro Speedway',          city:'North Wilkesboro', state:'NC' },
+  ],
+  // Tier 6-7: full Cup schedule including road courses
+  cup: [
+    { name:'Daytona International Speedway',     city:'Daytona Beach',    state:'FL' },
+    { name:'Talladega Superspeedway',            city:'Talladega',        state:'AL' },
+    { name:'Charlotte Motor Speedway',           city:'Concord',          state:'NC' },
+    { name:'Bristol Motor Speedway',             city:'Bristol',          state:'TN' },
+    { name:'Martinsville Speedway',              city:'Ridgeway',         state:'VA' },
+    { name:'Richmond Raceway',                   city:'Richmond',         state:'VA' },
+    { name:'Dover Motor Speedway',               city:'Dover',            state:'DE' },
+    { name:'New Hampshire Motor Speedway',       city:'Loudon',           state:'NH' },
+    { name:'Phoenix Raceway',                    city:'Avondale',         state:'AZ' },
+    { name:'Las Vegas Motor Speedway',           city:'Las Vegas',        state:'NV' },
+    { name:'Michigan International Speedway',    city:'Brooklyn',         state:'MI' },
+    { name:'Texas Motor Speedway',               city:'Fort Worth',       state:'TX' },
+    { name:'Atlanta Motor Speedway',             city:'Hampton',          state:'GA' },
+    { name:'Pocono Raceway',                     city:'Long Pond',        state:'PA' },
+    { name:'Kansas Speedway',                    city:'Kansas City',      state:'KS' },
+    { name:'Homestead-Miami Speedway',           city:'Homestead',        state:'FL' },
+    { name:'Darlington Raceway',                 city:'Darlington',       state:'SC' },
+    { name:'Nashville Superspeedway',            city:'Lebanon',          state:'TN' },
+    { name:'Iowa Speedway',                      city:'Newton',           state:'IA' },
+    { name:'North Wilkesboro Speedway',          city:'North Wilkesboro', state:'NC' },
+    { name:'Watkins Glen International',         city:'Watkins Glen',     state:'NY' },
+    { name:'Sonoma Raceway',                     city:'Sonoma',           state:'CA' },
+    { name:'Circuit of the Americas',            city:'Austin',           state:'TX' },
+  ],
+  // Fig8 finale — always Slinger for tier 1-2
+  fig8: [
+    { name:'Slinger Speedway', city:'Slinger', state:'WI', fig8:true },
+  ],
+};
+
+// Keep these for backward compatibility with save migration
+const FREE_TRACKS = SERIES_TRACKS.local;
+const PAID_TRACKS = SERIES_TRACKS.national;
 
 // ─── SPECIAL EVENTS ──────────────────────────────────────────────────────────
 const SPECIAL_EVENTS = [
@@ -1527,11 +1584,18 @@ function ordinal(n) {
 // ─── SCHEDULE GENERATION ─────────────────────────────────────────────────────
 function generateSchedule(seriesId, trackPools) {
   const s = getSeries(seriesId);
-  const isFree = seriesId==='mini_stock'||seriesId==='street_stock'||seriesId==='super_late_model';
-  const pool = trackPools ? (isFree?trackPools.free:trackPools.paid) : (isFree?FREE_TRACKS:PAID_TRACKS);
-  const slinger = isFree ? pool.find(t=>t.fig8) : null;
-  const rest = slinger ? pool.filter(t=>!t.fig8) : pool;
-  const mainCount = s.races - (slinger?1:0);
+  const tier = s ? s.tier : 1;
+  // Pick track pool by tier
+  let pool;
+  if      (tier <= 2) pool = SERIES_TRACKS.local;
+  else if (tier === 3) pool = SERIES_TRACKS.regional;
+  else if (tier <= 5) pool = SERIES_TRACKS.national;
+  else                pool = SERIES_TRACKS.cup;
+
+  const useSlinger = tier <= 2;
+  const slinger = useSlinger ? SERIES_TRACKS.fig8[0] : null;
+  const rest = pool.filter(t=>!t.fig8);
+  const mainCount = s.races - (slinger ? 1 : 0);
   const shuffled = shuffle(rest);
   const picks = [];
   while (picks.length < mainCount) shuffled.forEach(t=>{ if(picks.length<mainCount) picks.push(t); });
@@ -3621,6 +3685,7 @@ function importSave(file) {
 
 // ─── TABS ─────────────────────────────────────────────────────────────────────
 const TABS = [
+const TABS = [
   {id:'dashboard', label:'Dashboard'},
   {id:'contracts', label:'Contracts'},
   {id:'schedule',  label:'Schedule'},
@@ -3629,7 +3694,6 @@ const TABS = [
   {id:'standings', label:'Standings'},
   {id:'business',  label:'Business'},
   {id:'drivers',   label:'Drivers'},
-  {id:'tracks',    label:'Tracks'},
   {id:'log',       label:'Log'},
   {id:'history',   label:'History'},
   {id:'settings',  label:'Settings'},
@@ -3675,8 +3739,7 @@ function render() { renderHeader(); renderTabs(); renderContent(); }
 function renderContent() {
   const c=$('content'); c.innerHTML='';
   const page=h('div',{className:'page'});
-  const map={dashboard:renderDashboard,contracts:renderContracts,schedule:renderSchedule,special:renderSpecial,rivals:renderRivals,standings:renderStandings,business:renderBusiness,drivers:renderDrivers,tracks:renderTracks,log:renderLog,history:renderHistory,settings:renderSettings};
-  if(map[activeTab]) page.appendChild(map[activeTab]());
+const map={dashboard:renderDashboard,contracts:renderContracts,schedule:renderSchedule,special:renderSpecial,rivals:renderRivals,standings:renderStandings,business:renderBusiness,drivers:renderDrivers,log:renderLog,history:renderHistory,settings:renderSettings};  if(map[activeTab]) page.appendChild(map[activeTab]());
   c.appendChild(page);
 }
 
