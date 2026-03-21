@@ -1329,7 +1329,7 @@ function parseRaceResults(raw, isMultiClass=false) {
                   : allLapTimes.length === 1 ? allLapTimes[0] : null;
     const gapMatch = text.match(/^(-\d{0,1}:\d{2}\.\d+|-\d+\.\d{3,})$/m);
     const gap = gapMatch ? gapMatch[1] : null;
-    const lapsDown = text.match(/^(-\d+L)$/m)?.[1] || null;
+    const lapsDown = (text.match(/^(-\d+L)$/m)||[])[1] || null;
     const disconnected = /^Disconnected$/m.test(text);
     const statusMatch  = text.match(/\b(DNF|DQ|DSQ|DNS|NC)\b/i);
     const status = statusMatch ? statusMatch[1].toUpperCase()
@@ -1659,13 +1659,13 @@ function getMadLibSummary(result, seriesId, track, team, season, rivalName) {
 
   const template = pool[Math.floor(Math.random()*pool.length)];
   const lapsText = result.mostLaps ? 'Led the most laps' : result.lapsLed ? 'Led laps' : '';
-  const gapText  = result.finishOrder&&result.finishOrder[1]?.lapTime ? result.finishOrder[1].lapTime : '';
+  const gapText  = (result.finishOrder&&result.finishOrder[1]&&result.finishOrder[1].lapTime) ? result.finishOrder[1].lapTime : '';
 
   return template
     .replace(/{name}/g,   G.driverName)
     .replace(/{track}/g,  track)
     .replace(/{pos}/g,    ordinal(pos||0))
-    .replace(/{series}/g, s?.short||'series')
+    .replace(/{series}/g, (s&&s.short)||'series')
     .replace(/{rival}/g,  rivalName||'the field')
     .replace(/{gap}/g,    gapText)
     .replace(/{laps}/g,   lapsText)
@@ -1878,7 +1878,7 @@ function sponsorOffersForSeries(seriesId) {
 
 // ─── DRIVER DATABASE ─────────────────────────────────────────────────────────
 function createDriver(name, skill=null, seriesId=null, source='generated') {
-  const tier = seriesId ? (getSeries(seriesId)?.tier||1) : 1;
+  const tier = seriesId ? ((getSeries(seriesId)&&getSeries(seriesId).tier)||1) : 1;
   return {
     id: uid(),
     name,
@@ -2069,24 +2069,6 @@ function maybeFireUnpromptedCallout(state, seriesId, result) {
     }
     touchRival(state.rivals, name, 'incident', false);
   }
-
-  const effect = isPositive ? 'rep_fans' : 'none';
-  // Apply immediate passive effect — paddock talk has weight
-  if (isPositive) {
-    state.reputation = Math.max(0, state.reputation + rand(1,3));
-    state.fans = Math.max(0, state.fans + rand(50,200));
-    // Push toward friend/racing_rival
-    touchRival(state.rivals, name, 'close', true);
-  } else {
-    // Shade — nudge toward rivalry, no rep hit unless they're already a rival
-    const existing = (state.rivals||[]).find(r=>r.name===name);
-    const rel = existing ? relationship(existing) : null;
-    if (rel==='rival'||rel==='frenemy') {
-      state.reputation = Math.max(0, state.reputation - 1);
-    }
-    touchRival(state.rivals, name, 'incident', false);
-  }
-
   const effect = isPositive ? 'rep_fans' : 'none';
   state.dramaQueue.push({
     id: 'unprompted_'+uid(),
@@ -2539,10 +2521,10 @@ function buildPreRaceNote(seriesId, raceIdx) {
   const myPos = allPts.findIndex(r=>r.isPlayer)+1;
   const racesLeft = sched.filter(r=>!r.result).length;
   if (myPos === 1 && allPts.length > 1 && racesLeft <= 4) {
-    const gap = myPts - (allPts[1]?.pts||0);
+    const gap = myPts - ((allPts[1]&&allPts[1].pts)||0);
     notes.push(`Championship leader by ${gap} points with ${racesLeft} to go. Protect it.`);
   } else if (myPos > 1 && racesLeft <= 4 && allPts.length > 1) {
-    const gap = (allPts[0]?.pts||0) - myPts;
+    const gap = ((allPts[0]&&allPts[0].pts)||0) - myPts;
     notes.push(`${gap} points back with ${racesLeft} races left. Need a strong run.`);
   }
 
@@ -2717,7 +2699,7 @@ function processRaceResult(state, seriesId, raceIdx, result) {
   state.reputation = Math.max(0, state.reputation+repGain);
 
   // Fan gain
-const _fanMult = [1,1,1.5,2,5,15,40,100][getSeries(seriesId)?.tier||1]||1;
+const _fanMult = [1,1,1.5,2,5,15,40,100][(getSeries(seriesId)&&getSeries(seriesId).tier)||1]||1;
   let fanGain = 0;
   if (result.dq)                fanGain=-rand(20,60);
   else if (result.position===1) fanGain=rand(200,500);
@@ -2790,11 +2772,11 @@ const _fanMult = [1,1,1.5,2,5,15,40,100][getSeries(seriesId)?.tier||1]||1;
 // Sponsor happiness
   state.sponsors = state.sponsors.map(sp=>{
     let h=sp.happiness;
-    if (result.dq)                h-=(SPONSOR_TYPES[sp.type]?.decay||5)*1.5;
-    else if (result.dnf)          h-=SPONSOR_TYPES[sp.type]?.decay||5;
-    else if (result.position===1) h+=SPONSOR_TYPES[sp.type]?.gain||10;
-    else if (result.position<=5)  h+=Math.floor((SPONSOR_TYPES[sp.type]?.gain||10)*0.4);
-    else if (result.position>result.fieldSize*0.6) h-=Math.floor((SPONSOR_TYPES[sp.type]?.decay||5)*0.5);
+    if (result.dq)                h-=((SPONSOR_TYPES[sp.type]&&SPONSOR_TYPES[sp.type].decay)||5)*1.5;
+    else if (result.dnf)          h-=(SPONSOR_TYPES[sp.type]&&SPONSOR_TYPES[sp.type].decay)||5;
+    else if (result.position===1) h+=(SPONSOR_TYPES[sp.type]&&SPONSOR_TYPES[sp.type].gain)||10;
+    else if (result.position<=5)  h+=Math.floor(((SPONSOR_TYPES[sp.type]&&SPONSOR_TYPES[sp.type].gain)||10)*0.4);
+    else if (result.position>result.fieldSize*0.6) h-=Math.floor(((SPONSOR_TYPES[sp.type]&&SPONSOR_TYPES[sp.type].decay)||5)*0.5);
     if (result.qualPosition && result.qualPosition<=3 && !result.dq) h+=3;
     return {...sp, happiness:clamp(h,0,100)};
   });
@@ -2999,7 +2981,7 @@ const _fanMult = [1,1,1.5,2,5,15,40,100][getSeries(seriesId)?.tier||1]||1;
 
   // Generate and store mad-libs summary now (persists with race history)
   const rivalName = (state.rivals||[]).filter(r=>['rival','frenemy','racing_rival'].includes(relationship(r))).map(r=>r.name)[0] || null;
-  const madLibText = getMadLibSummary(result, seriesId, race.track, contract?.team||'the team', state.season, rivalName);
+  const madLibText = getMadLibSummary(result, seriesId, race.track, (contract&&contract.team)||'the team', state.season, rivalName);
 
   // Race history
   state.raceHistory.push({
@@ -3057,7 +3039,20 @@ if(Math.random()<0.10){
  maybeFireUnpromptedCallout(state, seriesId, result);
   maybeFireSeriesNews(state, seriesId);
   // Injury rolls — player and AI
-  processPlayerInjury(state, seriesId, result);
+  if (!result._injuryRace) {
+    processPlayerInjury(state, seriesId, result);
+  } else {
+    // Post-race summary for injury sub race
+    const subName = result._subName || (state.playerInjury&&state.playerInjury.subName) || 'your substitute';
+    const racesLeft = state.playerInjury ? state.playerInjury.racesRemaining : 0;
+    state.dramaQueue.push({
+      id: 'inj_summary_'+uid(),
+      title: '⛑️ Injury Update',
+      effect: 'none',
+      desc: `${subName} ran in your place today. ${result.dnf?'They DNF\'d.':result.position<=5?`They finished P${result.position} — solid run for the team.`:`They finished P${result.position}.`} ${racesLeft>0?`You have ${racesLeft} race${racesLeft>1?'s':''} remaining on injury.`:'You should be cleared for the next race.'}`,
+      valence: result.position<=5?'good':'neutral',
+    });
+  }
   processAIInjuries(state, seriesId, result.finishOrder||[]);
   tickAIInjuries(state, seriesId);
   if(state.week%6===0){
@@ -3091,7 +3086,7 @@ if(Math.random()<0.10){
   const incidentRace = (result.incidentDrivers||[]).length > 0 || result.dnf;
   state.carCondition.tires      = clamp(state.carCondition.tires      - rand(8,14) * (cond.tireWear||1) - (hardRace?5:0), 0, 100);
   state.carCondition.brakes     = clamp(state.carCondition.brakes     - rand(4,8)  - (hardRace?4:0), 0, 100);
-  state.carCondition.engine     = clamp(state.carCondition.engine     - rand(3,7)  - (result.dnf&&result.dnfReason?.match(/engine|motor|rod/i)?40:0), 0, 100);
+  state.carCondition.engine     = clamp(state.carCondition.engine     - rand(3,7)  - (result.dnf&&(result.dnfReason&&result.dnfReason.match(/engine|motor|rod/i))?40:0), 0, 100);
   state.carCondition.chassis    = clamp(state.carCondition.chassis    - rand(2,5)  - (incidentRace?rand(8,15):0), 0, 100);
   state.carCondition.suspension = clamp(state.carCondition.suspension - rand(3,7)  - (incidentRace?rand(10,20):0), 0, 100);
 
@@ -3116,14 +3111,14 @@ if(Math.random()<0.10){
     const myPts = state.championshipPoints[seriesId]||0;
     const field = state.seriesFields[seriesId]||{};
     const allPts = [{pts:myPts,isPlayer:true},...Object.entries(field).map(([n,d])=>({pts:d.points,name:n}))].sort((a,b)=>b.pts-a.pts);
-    const leaderPts = allPts[0]?.pts||0;
+    const leaderPts = (allPts[0]&&allPts[0].pts)||0;
     const myPos = allPts.findIndex(r=>r.isPlayer)+1;
     const gap = leaderPts - myPts;
     // Max possible points remaining — 43 is the win value in the unified points table
     const maxPtsPerRace = 43;
     const maxPossible = maxPtsPerRace * racesLeft;
     if (myPos === 1 && allPts.length > 1) {
-      const secondGap = myPts - (allPts[1]?.pts||0);
+      const secondGap = myPts - ((allPts[1]&&allPts[1].pts)||0);
       if (secondGap < maxPtsPerRace * racesLeft * 0.5 && Math.random() < 0.5) {
         state.dramaQueue.push({id:'champ_lead_'+uid(),title:'Championship On The Line',effect:'none',
           desc:`${racesLeft} races left. You're P1 by ${secondGap} points. It's yours to lose. Don't lose it.`,valence:'neutral'});
@@ -3273,13 +3268,13 @@ const _sFanMult = [1,1,2,4,12,40,100,250][s.tier||1]||1;
     const teamList=TEAMS[to]||['Independent'];
     driver.currentTeam=teamList[rand(0,teamList.length-1)];
     addLog(state,`📉 ${driver.name} dropped to ${getSeries(to).short}`);
-    if (getSeries(to)?.tier === 1) retireDriverAsJrCandidate(driver);
+    if ((getSeries(to)&&getSeries(to).tier) === 1) retireDriverAsJrCandidate(driver);
   });
 
   state.drivers.forEach(d => {
     if (!d.active) { retireDriverAsJrCandidate(d); return; }
     const s2 = getSeries(d.currentSeriesId);
-    if (s2?.tier === 1 && d.starts > 60 && d.skill < 35 && Math.random() < 0.15) {
+    if ((s2&&s2.tier) === 1 && d.starts > 60 && d.skill < 35 && Math.random() < 0.15) {
       retireDriverAsJrCandidate(d);
     }
   });
@@ -3355,7 +3350,7 @@ function generateSeasonGoals(state) {
     milestone={desc:'You haven\'t won yet. This is the season that changes.',target:'win',reward:{rep:10,fans:500},failPenalty:{rep:-2}};
   } else if(state.poles===0){
     milestone={desc:'Never sat on pole. Time to put together a lap nobody can touch.',target:'pole',reward:{rep:6,fans:300},failPenalty:{rep:0}};
-  } else if(tier>=3&&!state.raceHistory.find(r=>r.season<state.season&&r.pos===1&&getSeries(r.seriesId)?.tier>=3)){
+  } else if(tier>=3&&!state.raceHistory.find(r=>r.season<state.season&&r.pos===1&&(getSeries(r.seriesId)&&getSeries(r.seriesId).tier>=3))){
     milestone={desc:`First win at the ${s.short} level would mean something. Prove you belong here.`,target:'win',reward:{rep:12,fans:600},failPenalty:{rep:-2}};
   } else {
     const lastSeasonRaces=state.raceHistory.filter(r=>r.season===state.season-1&&r.seriesId===sid&&!r.dnf&&!r.dq);
@@ -3441,9 +3436,9 @@ const MILESTONE_DEFS = [
   { id:'first_top5',     label:'First Top 5',           icon:'🔝', desc:'Ran with the fast ones.',                           check:s=>s.top5s>=1 },
   { id:'first_pole',     label:'First Pole',            icon:'⚡', desc:'Fastest in qualifying.',                            check:s=>s.poles>=1 },
   { id:'first_win',      label:'First Win',             icon:'🏆', desc:'The one that changes everything.',                  check:s=>s.wins>=1 },
-  { id:'first_national', label:'Gone National',         icon:'📺', desc:'First race in a nationally televised series.',      check:s=>(s.raceHistory||[]).some(r=>getSeries(r.seriesId)?.tier>=4) },
+  { id:'first_national', label:'Gone National',         icon:'📺', desc:'First race in a nationally televised series.',      check:s=>(s.raceHistory||[]).some(r=>(getSeries(r.seriesId)&&getSeries(r.seriesId).tier>=4)) },
   { id:'ten_wins',       label:'10 Wins',               icon:'💛', desc:'Double digits.',                                    check:s=>s.wins>=10 },
-  { id:'champion',       label:'Champion',              icon:'👑', desc:'Won a series championship.',                        check:s=>(s.seasonHistory||[]).some(h=>h.championships?.some(c=>c.pos===1)) },
+  { id:'champion',       label:'Champion',              icon:'👑', desc:'Won a series championship.',                        check:s=>(s.seasonHistory||[]).some(h=>(h.championships&&h.championships.some(c=>c.pos===1))) },
   { id:'iron_man',       label:'Iron Man',              icon:'🔩', desc:'50 career starts.',                                 check:s=>s.starts>=50 },
   { id:'fan_base',       label:'Fan Base',              icon:'📣', desc:'10,000 fans.',                                      check:s=>s.fans>=10000 },
   { id:'clean_season',   label:'Clean Season',          icon:'✨', desc:'A full season without a DNF.',                      check:s=>(s.seasonHistory||[]).some(h=>h.dnfs===0&&h.races>=8) },
@@ -3591,7 +3586,7 @@ function advanceSeason(state) {
     const field=state.seriesFields[sid]||{};
     const rows=[{points:pts,isPlayer:true},...Object.entries(field).map(([n,d])=>({points:d.points}))].sort((a,b)=>b.points-a.points);
     const pos=rows.findIndex(r=>r.isPlayer)+1;
-    return {seriesId:sid,seriesShort:s?.short||sid,pos,pts};
+    return {seriesId:sid,seriesShort:(s&&s.short)||sid,pos,pts};
   });
   if(!(state.seasonHistory)) state.seasonHistory=[];
   state.seasonHistory.push({
@@ -3897,7 +3892,6 @@ function importSave(file) {
 
 // ─── TABS ─────────────────────────────────────────────────────────────────────
 const TABS = [
-const TABS = [
   {id:'dashboard', label:'Dashboard'},
   {id:'contracts', label:'Contracts'},
   {id:'schedule',  label:'Schedule'},
@@ -4082,9 +4076,9 @@ function renderDashboard() {
       lastCard.appendChild(h('div',{style:{
         marginTop:'12px',padding:'11px 14px',
         background:'#060A10',borderRadius:'7px',
-        borderLeft:`3px solid ${s?.color||'#F59E0B'}`,
+        borderLeft:`3px solid ${(s&&s.color)||'#F59E0B'}`,
       }},
-        h('div',{style:{fontSize:'10px',color:s?.color||'#F59E0B',fontWeight:700,textTransform:'uppercase',letterSpacing:'0.12em',marginBottom:'5px'}},`📰 ${last.seriesShort} Report`),
+        h('div',{style:{fontSize:'10px',color:(s&&s.color)||'#F59E0B',fontWeight:700,textTransform:'uppercase',letterSpacing:'0.12em',marginBottom:'5px'}},`📰 ${last.seriesShort} Report`),
         h('div',{style:{fontSize:'14px',color:'#CBD5E1',lineHeight:'1.65',fontStyle:'italic'}},last.summary),
       ));
     }
@@ -4247,7 +4241,7 @@ function renderDashboard() {
   // Teammates
   const allTeammates=G.contracts.flatMap(c=>{
     const s=getSeries(c.seriesId);
-    return (G.teammates||[]).filter(t=>t.seriesId===c.seriesId).map(t=>({...t,seriesColor:s?.color||'#94A3B8',seriesShort:s?.short||''}));
+    return (G.teammates||[]).filter(t=>t.seriesId===c.seriesId).map(t=>({...t,seriesColor:(s&&s.color)||'#94A3B8',seriesShort:(s&&s.short)||''}));
   });
   if(allTeammates.length){
     const tc=h('div',{className:'card'});
@@ -4359,7 +4353,7 @@ function renderContracts() {
         h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',minWidth:'190px'}},
           ...[
             ['Prize Share',`${Math.round((offer.prizeShare||0.7)*100)}% yours`,'#10B981'],
-            ['Entry Fee',fmtMoney(offer.entryFee||getSeries(offer.seriesId)?.fee||0),'#EF4444'],
+            ['Entry Fee',fmtMoney(offer.entryFee||(getSeries(offer.seriesId)&&getSeries(offer.seriesId).fee)||0),'#EF4444'],
             ['Win Bonus',fmtMoney(offer.winBonus),'#F59E0B'],
             ['Req Finish',`Top ${offer.reqFinish}`,'#CBD5E1'],
           ].map(([l,v,c])=>h('div',{style:{background:'#060A10',borderRadius:'7px',padding:'9px 11px',border:'1px solid #1E2433'}},
@@ -4407,7 +4401,7 @@ function renderContracts() {
       h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',minWidth:'190px'}},
         ...[
           ['Prize Share',`${Math.round((offer.prizeShare||0.7)*100)}% yours`,'#10B981'],
-          ['Entry Fee',fmtMoney(offer.entryFee||getSeries(offer.seriesId)?.fee||0),'#EF4444'],
+          ['Entry Fee',fmtMoney(offer.entryFee||(getSeries(offer.seriesId)&&getSeries(offer.seriesId).fee)||0),'#EF4444'],
           ['Win Bonus',fmtMoney(offer.winBonus),'#F59E0B'],
           ['Req Finish',`Top ${offer.reqFinish}`,'#CBD5E1'],
         ].map(([l,v,c])=>h('div',{style:{background:'#060A10',borderRadius:'7px',padding:'9px 11px',border:'1px solid #1E2433'}},
@@ -4539,14 +4533,14 @@ function renderSchedule() {
       const undoneIdx=sched.map((_,idx)=>(sched[idx].result)?null:idx).filter(v=>v!==null);
 
       sched.forEach((race,i)=>{
-        const done=!!race.result&&!race.result?.skipped;
-        const skipped=!!race.result?.skipped;
+        const done=!!race.result&&!(race.result&&race.result.skipped);
+        const skipped=!!(race.result&&race.result.skipped);
         const isNext=!done&&!skipped&&sched.slice(0,i).every(r=>r.result);
         const bonusDone=!!race.bonusResult;
         const bonusNow=done&&race.fig8&&!bonusDone;
-        const isDQd=done&&race.result?.dq;
+        const isDQd=done&&(race.result&&race.result.dq);
         const pc=done&&race.result.dnf?'#EF4444':isDQd?'#F97316':done&&race.result.position===1?'#F59E0B':done&&race.result.position<=5?'#10B981':'#94A3B8';
-        const resultLabel=isDQd?'DQ':race.result?.dnf?'DNF':done?`P${race.result.position}`:'';
+        const resultLabel=isDQd?'DQ':(race.result&&race.result.dnf)?'DNF':done?`P${race.result.position}`:'';
         const myUndonePos=undoneIdx.indexOf(i);
         const canUp=!done&&!skipped&&myUndonePos>0;
         const canDn=!done&&!skipped&&myUndonePos<undoneIdx.length-1;
@@ -4900,8 +4894,8 @@ function renderPerfGraph() {
     ctx.fillStyle='#94A3B8';ctx.font='11px Arial';
     ctx.textAlign='right';ctx.fillText('P1',PAD-5,PAD+4);ctx.fillText(`P${Math.round(maxPos)}`,PAD-5,H-PAD+4);
     ctx.textAlign='left';ctx.fillStyle='#64748B';
-    if(history.length>0)ctx.fillText(history[0].track?.slice(0,20)||'',PAD,H-6);
-    if(history.length>1)ctx.fillText(history[history.length-1].track?.slice(0,20)||'',W-PAD-120,H-6);
+    if(history.length>0)ctx.fillText((history[0].track&&history[0].track.slice(0,20))||'',PAD,H-6);
+    if(history.length>1)ctx.fillText((history[history.length-1].track&&history[history.length-1].track.slice(0,20))||'',W-PAD-120,H-6);
   });
   return wrap;
 }
@@ -4913,7 +4907,7 @@ function renderBusiness() {
   f.appendChild(h('div',{className:'page-sub'},'Sponsorships, off-track events, crew packages, and merch.'));
 // ── Media Day ───────────────────────────────────────────────────────────────
   const activeTier = G.contracts.length
-    ? Math.max(...G.contracts.map(c=>getSeries(c.seriesId)?.tier||1))
+    ? Math.max(...G.contracts.map(c=>(getSeries(c.seriesId)&&getSeries(c.seriesId).tier)||1))
     : 1;
   const mediaDayUsed = (G.offTrackDone||[]).includes('media_day_s'+G.season);
   const tierKey = activeTier<=2?'tier12':activeTier===3?'tier3':activeTier===4?'tier4':'tier567';
@@ -5522,7 +5516,7 @@ function renderHistory() {
             ...(s.championships||[]).map(c=>{
               const sc=getSeries(c.seriesId);
               const col=c.pos===1?'#F59E0B':c.pos<=3?'#CBD5E1':c.pos<=10?'#10B981':'#94A3B8';
-              return badge(`${sc?.short||c.seriesShort||''} P${c.pos}`,col);
+              return badge(`${(getSeries(c.seriesId)&&getSeries(c.seriesId).tier)||1} P${c.pos}`,col);
             }),
           ),
           h('div',{style:{display:'flex',gap:'16px',flexWrap:'wrap',fontSize:'13px',color:'#94A3B8'}},
@@ -5696,8 +5690,8 @@ const SEASON_SUMMARY_WINLESS = [
 function getSeasonMadLib(summary) {
   const {wins, top5s, totalRaces, championships, season} = summary;
   const champ = championships[0];
-  const pos = champ?.position||99;
-  const seriesName = champ?.seriesName||'series';
+  const pos = (champ&&champ.position)||99;
+  const seriesName = (champ&&champ.seriesName)||'series';
   const prize = fmtMoney(summary.totalPrize||0);
   const name = G.driverName;
 
@@ -5771,10 +5765,10 @@ function openSeasonEndModal() {
       const news = G._lastSeasonAiNews || {promotions:[],demotions:[]};
       const items = [
         ...( news.promotions || [] ).slice(0,5).map(({driver,to}) =>
-          `📈 ${driver.name} promoted to ${getSeries(to)?.short||to}`
+          `📈 ${driver.name} promoted to ${(getSeries(to)&&getSeries(to).short)||to}`
         ),
         ...( news.demotions || [] ).slice(0,3).map(({driver,to}) =>
-          `📉 ${driver.name} dropped to ${getSeries(to)?.short||to}`
+          `📉 ${driver.name} dropped to ${(getSeries(to)&&getSeries(to).short)||to}`
         ),
       ];
       if (!items.length) return null;
@@ -5890,7 +5884,7 @@ function doSignContract(offer) {
     addLog(G, `💰 Signing bonus from ${offer.team}: +${fmtMoney(offer.salary)}`);
   }
   const prizeSharePct = Math.round((offer.prizeShare||1.0)*100);
-  const entryNote = `Entry fee: ${fmtMoney(offer.entryFee||getSeries(offer.seriesId)?.fee||0)}/race · Prize share: ${prizeSharePct}% yours`;
+  const entryNote = `Entry fee: ${fmtMoney(offer.entryFee||(getSeries(offer.seriesId)&&getSeries(offer.seriesId).fee)||0)}/race · Prize share: ${prizeSharePct}% yours`;
   addLog(G,`✍️ Signed with ${offer.team} — ${getSeries(offer.seriesId).name}. ${entryNote}. ${offer.termSeasons} season deal.`);
   saveGame(); render();
 }
@@ -5900,7 +5894,7 @@ function doTerminateContract(seriesId,penalty) {
   if(!c) return;
   openModal(h('div',null,
     h('div',{className:'modal-title',style:{color:'#EF4444',marginBottom:'8px'}},'Terminate Contract?'),
-    h('div',{className:'modal-sub'},`${c.team} — ${getSeries(seriesId)?.name||''}`),
+    h('div',{className:'modal-sub'},`${c.team} — ${(getSeries(seriesId)&&getSeries(seriesId).name)||''}`),
     h('div',{style:{background:'#060A10',borderRadius:'8px',padding:'14px',marginBottom:'16px',fontSize:'14px',color:'#E2E8F0'}},
       `Exit penalty: `,h('span',{style:{color:'#EF4444',fontWeight:800,fontSize:'17px'}},fmtMoney(penalty)),
       h('br'),h('div',{style:{fontSize:'14px',color:'#94A3B8',marginTop:'6px'}},'This will be deducted from your account immediately.'),
@@ -6139,7 +6133,11 @@ function processPlayerInjury(state, seriesId, result) {
   state.drivers.push(subDriver);
 
   state.playerInjury = { racesOut, subName, seriesId, racesRemaining: racesOut };
-
+// Seed sub into series standings so they appear in the standings table
+  if (!state.seriesFields[seriesId]) state.seriesFields[seriesId] = {};
+  if (!state.seriesFields[seriesId][subName]) {
+    state.seriesFields[seriesId][subName] = {points:0, wins:0, top5s:0, starts:0};
+  }
   const desc = `${state.driverName} has been injured and will miss the next ${racesOut} race${racesOut>1?'s':''}. ${subName} will substitute. Add ${subName} to your iRacing lineup.`;
   state.dramaQueue.push({
     id:'player_inj_'+uid(),
@@ -6199,9 +6197,9 @@ function processAIInjuries(state, seriesId, finishOrder) {
 
 function tickPlayerInjury(state) {
   if (!state.playerInjury) return false;
-  state.playerInjury.racesRemaining--;
+  // Check BEFORE decrementing — if there are races remaining, show injured modal
   if (state.playerInjury.racesRemaining <= 0) {
-    // Recover
+    // Already expired — clean up
     const subDriver = (state.drivers||[]).find(d=>d.name===state.playerInjury.subName);
     if (subDriver) subDriver.active = false;
     state.dramaQueue.push({
@@ -6215,16 +6213,21 @@ function tickPlayerInjury(state) {
     state.playerInjury = null;
     return false;
   }
-  // Still injured — pre-race reminder
-  state.dramaQueue.push({
-    id:'player_inj_rem_'+uid(),
-    title:'⛑️ Still Injured',
-    effect:'none',
-    desc:`${state.driverName} is still recovering. ${state.playerInjury.subName} starts again this race. ${state.playerInjury.racesRemaining} race${state.playerInjury.racesRemaining>1?'s':''} remaining.`,
-    valence:'bad',
-  });
-  return true; // still injured
+  // Still injured — decrement and show modal
+  state.playerInjury.racesRemaining--;
+  if (state.playerInjury.racesRemaining <= 0) {
+    // Last race — will clear after this one
+    state.dramaQueue.push({
+      id:'player_inj_last_'+uid(),
+      title:'⛑️ Final Race on Injury',
+      effect:'none',
+      desc:`${state.driverName} is out for one more race. ${state.playerInjury.subName} starts today. You should be cleared after this.`,
+      valence:'bad',
+    });
+  }
+  return true;
 }
+   
 // ─── QUALIFYING MODAL ────────────────────────────────────────────────────────
 function openQualModal(seriesId, raceIdx) {
   const sched=G.schedules[seriesId]||[];
@@ -6342,7 +6345,7 @@ function openRaceModal(seriesId, raceIdx) {
                 result._mechanical = true;
                 processRaceResult(G,seriesId,raceIdx,result);
                 const _r2=(G.schedules[seriesId]||[])[raceIdx];
-                if(_r2?.result?.summary) showSummaryToast(_r2.result.summary,s.color,s.short);
+                if((_r2&&_r2.result&&_r2.result.summary)) showSummaryToast(_r2.result.summary,s.color,s.short);
                 tryGenerateSummary(G,seriesId,raceIdx,result);
               }
             });
@@ -6381,7 +6384,7 @@ function openRaceModal(seriesId, raceIdx) {
             mkBtn('Enter Results →','btn btn-danger',()=>{
               closeModal();
               buildRaceModal({
-                eyebrow:`${s.short} — Round ${race.round} (Injured — Sub: ${G.playerInjury?.subName||'Sub'})`,
+                eyebrow:`${s.short} — Round ${race.round} (Injured — Sub: ${(G.playerInjury&&G.playerInjury.subName)||'Sub'})`,
                 title:race.track,
                 sub:`${race.city}, ${race.state}`,
                 seriesId, raceIdx,
@@ -6389,11 +6392,11 @@ function openRaceModal(seriesId, raceIdx) {
                 crewPkg:CREW_PACKAGES[0],
                 expectedField,
                 isFig8:false, isSpecial:false,
-                playerNameOverride: G.playerInjury?.subName,
+                playerNameOverride: (G.playerInjury&&G.playerInjury.subName),
                 onSubmit:(result)=>{
                   // Points and prize go to sub, not player
                   result._injuryRace = true;
-                  result._subName = G.playerInjury?.subName;
+                  result._subName = (G.playerInjury&&G.playerInjury.subName);
                   processRaceResult(G,seriesId,raceIdx,result);
                   saveGame(); render();
                 },
@@ -6419,7 +6422,7 @@ function openRaceModal(seriesId, raceIdx) {
         const _sched2=G.schedules[seriesId]||[];
         const _race2=_sched2[raceIdx];
         if(_race2&&_race2.result&&_race2.result.summary){
-          showSummaryToast(_race2.result.summary, getSeries(seriesId)?.color||'#F59E0B', getSeries(seriesId)?.short||'');
+          showSummaryToast(_race2.result.summary, (getSeries(seriesId)&&getSeries(seriesId).color)||'#F59E0B', (getSeries(seriesId)&&getSeries(seriesId).short)||'');
         }
         tryGenerateSummary(G,seriesId,raceIdx,result);
       }
@@ -6465,11 +6468,11 @@ function openSpecialModal(evtId) {
   });
 }
 
-function buildRaceModal({eyebrow,title,sub,seriesId,raceIdx,qualNote,crewPkg,expectedField,isFig8,isSpecial,specialEvt,multiClass,forcedDNFReason,prefillResult,prefillOrder,onSubmit}) {
+function buildRaceModal({eyebrow,title,sub,seriesId,raceIdx,qualNote,crewPkg,expectedField,isFig8,isSpecial,specialEvt,multiClass,forcedDNFReason,prefillResult,prefillOrder,playerNameOverride,onSubmit}) {
   const s=getSeries(seriesId);
   const sched=G.schedules[seriesId]||[];
   const race=raceIdx>=0?sched[raceIdx]:null;
-  const fieldSize=race?.fieldSize||20;
+  const fieldSize=(race&&race.fieldSize)||20;
 
   // Declare repair hint up front so event listeners can reference it safely
   const repairHint=h('div',{style:{fontSize:'14px',color:'#94A3B8',marginTop:'5px',display:'none'}});
@@ -6498,6 +6501,7 @@ function buildRaceModal({eyebrow,title,sub,seriesId,raceIdx,qualNote,crewPkg,exp
   dnfRIn.addEventListener('input',updateRepairHint);
 
   const dqCb=h('input',{type:'checkbox'});
+  const forceInjuryCb=h('input',{type:'checkbox'});
   dqCb.addEventListener('change',()=>{
     if(dqCb.checked){dnfCb.checked=false;dnfRIn.style.display='none';repairHint.style.display='none';}
     upd();
@@ -6533,7 +6537,7 @@ function buildRaceModal({eyebrow,title,sub,seriesId,raceIdx,qualNote,crewPkg,exp
     posIn.style.opacity='0.5';
   }
   // If qualifying already recorded a pole, lock the checkbox — point already counted there
-  const qualPole = race?.qualifying?.pole || false;
+  const qualPole = (race&&race.qualifying&&race.qualifying.pole) || false;
   const poleCb=h('input',{type:'checkbox',disabled:qualPole,checked:false});
   if(qualPole) poleCb.title='Pole already recorded in qualifying';
   const lapsCb=h('input',{type:'checkbox'});
@@ -6761,7 +6765,7 @@ function buildRaceModal({eyebrow,title,sub,seriesId,raceIdx,qualNote,crewPkg,exp
     if(!pos) return;
     const dnf=dnfCb.checked;
     const dq=dqCb.checked;
-    const prize=isFig8?0:isSpecial?(specialEvt?.prize||0):(dnf||dq)?0:calcPrize(seriesId,pos,fs);
+    const prize=isFig8?0:isSpecial?((specialEvt&&specialEvt.prize)||0):(dnf||dq)?0:calcPrize(seriesId,pos,fs);
     const pts=(!isFig8&&!isSpecial&&!dnf&&!dq)?calcPoints(seriesId,pos,poleCb.checked,lapsCb.checked,mostCb.checked):0;
     const items=[];
     if(!isFig8&&!isSpecial) items.push(['POINTS',pts,'#F59E0B']);
@@ -6802,10 +6806,11 @@ function buildRaceModal({eyebrow,title,sub,seriesId,raceIdx,qualNote,crewPkg,exp
       `⚠️ Mechanical DNF (${forcedDNFReason}) — your result is locked as DNF. Enter the finish order so AI drivers score their points.`
     ):null,
 
-    h('div',{className:'modal-section'},
+   h('div',{className:'modal-section'},
       h('div',{style:{display:'flex',gap:'20px',flexWrap:'wrap',marginBottom:'6px'}},
         h('label',{className:'checkbox-item'},dnfCb,h('span',{style:{color:'#EF4444',fontSize:'14px'}},'Did Not Finish (DNF)')),
         h('label',{className:'checkbox-item'},dqCb,h('span',{style:{color:'#F97316',fontSize:'14px'}},'Disqualified (DQ)')),
+        h('label',{className:'checkbox-item'},forceInjuryCb,h('span',{style:{color:'#EF4444',fontSize:'13px'}},'⛑️ Force Injury (dev)')),
       ),
       dnfRIn,
       repairHint,
@@ -6872,16 +6877,16 @@ function buildRaceModal({eyebrow,title,sub,seriesId,raceIdx,qualNote,crewPkg,exp
             // If first column is a pure number (or number+punctuation), it's a position — skip it
             if (/^\d{1,3}[.):\s]*$/.test(tabParts[0].trim())) {
               // iRacing-style: col0=pos, col1=name, col2=laptime, col3=gap
-              rawName  = tabParts[1]?.trim() || '';
-              lapTime  = tabParts[2]?.trim() || null;
-              gap      = tabParts[3]?.trim() || null;
-              carClass = tabParts[4]?.replace(/[\[\]]/g,'').trim() || null;
+              rawName  = (tabParts[1]&&tabParts[1].trim()) || '';
+              lapTime  = (tabParts[2]&&tabParts[2].trim()) || null;
+              gap      = (tabParts[3]&&tabParts[3].trim()) || null;
+              carClass = (tabParts[4]&&tabParts[4].replace(/[\[\]]/g,'').trim()) || null;
             } else {
               // Already-cleaned style: col0=name, col1=laptime, col2=gap, col3=class
               rawName  = tabParts[0].trim();
-              lapTime  = tabParts[1]?.trim() || null;
-              gap      = tabParts[2]?.trim() || null;
-              carClass = tabParts[3]?.replace(/[\[\]]/g,'').trim() || null;
+              lapTime  = (tabParts[1]&&tabParts[1].trim()) || null;
+              gap      = (tabParts[2]&&tabParts[2].trim()) || null;
+              carClass = (tabParts[3]&&tabParts[3].replace(/[\[\]]/g,'').trim()) || null;
             }
           } else {
             rawName = line;
@@ -6909,7 +6914,11 @@ function buildRaceModal({eyebrow,title,sub,seriesId,raceIdx,qualNote,crewPkg,exp
           // Also skip if lapTime/gap ended up in name column (means columns still wrong)
           if (/^\d{1,2}:\d{2}/.test(name) || /^[+-]\d/.test(name)) continue;
 
-          const isPlayer = /\byou\b/i.test(name) || name.toLowerCase() === G.driverName.toLowerCase();
+          const isPlayer = /\byou\b/i.test(name) || name.toLowerCase() === G.driverName.toLowerCase() || (playerNameOverride && name.toLowerCase() === playerNameOverride.toLowerCase());
+          // If injured, swap player name for sub name in the finish order
+          if (playerNameOverride && (name.toLowerCase() === G.driverName.toLowerCase() || /\byou\b/i.test(name))) {
+            name = playerNameOverride;
+          }
           finishOrder.push({ pos:parsedIdx+1, name, lapTime, gap, carClass, status:entryStatus, isPlayer });
           parsedIdx++;
         }
@@ -6921,7 +6930,7 @@ function buildRaceModal({eyebrow,title,sub,seriesId,raceIdx,qualNote,crewPkg,exp
         if(playerEntry) playerEntry.isPlayer=true;
         const closeFinishes=detectCloseFinishes(finishOrder);
 
-        const prize=isFig8?rand(pos===1?300:50,pos===1?600:250):isSpecial?(specialEvt?.prize||0):(dnf||dq)?0:calcPrize(seriesId,pos,fs);
+        const prize=isFig8?rand(pos===1?300:50,pos===1?600:250):isSpecial?((specialEvt&&specialEvt.prize)||0):(dnf||dq)?0:calcPrize(seriesId,pos,fs);
         // Pole point: only count from race modal checkbox if qualifying didn't already record it
         const poleFromRaceModal = poleCb.checked && !qualPole;
         const pts=(!isFig8&&!isSpecial&&!dnf&&!dq)?calcPoints(seriesId,pos,poleFromRaceModal,lapsCb.checked,mostCb.checked):0;
@@ -6934,8 +6943,33 @@ function buildRaceModal({eyebrow,title,sub,seriesId,raceIdx,qualNote,crewPkg,exp
           lapsLed:lapsCb.checked,mostLapsLed:mostCb.checked,
           finishOrder, incidentDrivers:incArr,
           closeFinishes,
-          qualPosition:race?.qualifying?.position||null,
+          qualPosition:(race&&race.qualifying&&race.qualifying.position)||null,
         };
+        if (forceInjuryCb && forceInjuryCb.checked) {
+          // Bypass roll — force injury directly
+          if (!G.playerInjury) {
+            const racesOut = getInjuryLength();
+            let subName = generateAIName();
+            while ((G.drivers||[]).find(d=>d.name===subName)) subName = generateAIName();
+            const subDriver = createDriver(subName, rand(35,65), seriesId, 'generated');
+            subDriver.substituteFor = G.driverName;
+            G.drivers.push(subDriver);
+            G.playerInjury = { racesOut, subName, seriesId, racesRemaining: racesOut };
+            if (!G.seriesFields[seriesId]) G.seriesFields[seriesId] = {};
+            if (!G.seriesFields[seriesId][subName]) {
+              G.seriesFields[seriesId][subName] = {points:0, wins:0, top5s:0, starts:0};
+            }
+            G.dramaQueue.push({
+              id:'player_inj_'+uid(),
+              title:'⛑️ You Are Injured',
+              effect:'none',
+              desc:`${G.driverName} has been injured and will miss the next ${racesOut} race${racesOut>1?'s':''}. ${subName} will substitute. Add ${subName} to your iRacing lineup.`,
+              valence:'bad',
+            });
+            addLog(G, `⛑️ [FORCED] Player injured — out ${racesOut} races. Sub: ${subName}`);
+            saveGame();
+          }
+        }
         closeModal();
 
         // DQ: no repairs, but random fine based on series tier
@@ -6947,9 +6981,9 @@ function buildRaceModal({eyebrow,title,sub,seriesId,raceIdx,qualNote,crewPkg,exp
             const fineBase=[500,1200,3000,8000,20000,35000,50000][tier-1]||500;
             const fine=Math.floor(fineBase*(0.7+Math.random()*0.6));
             G.money-=fine;
-            addLog(G,`🚫 DQ @ ${race?.track||'race'}: Fined ${fmtMoney(fine)} by ${s2?.short||'series'} officials.`);
+            addLog(G,`🚫 DQ @ ${(race&&race.track)||'race'}: Fined ${fmtMoney(fine)} by ${(s2&&s2.short)||'series'} officials.`);
             G.dramaQueue.push({id:'dq_fine_'+Date.now(),title:`DQ Fine — ${fmtMoney(fine)} Deducted`,effect:'none',
-              desc:`${s2?.short||'Series'} officials fined you ${fmtMoney(fine)} following the disqualification at ${race?.track||'this race'}. The money has already been taken from your account.`});
+              desc:`${(s2&&s2.short)||'series'} officials fined you ${fmtMoney(fine)} following the disqualification at ${(race&&race.track)||'this race'}. The money has already been taken from your account.`});
           }
           onSubmit(result);
           maybeFireCalendarEvent();
@@ -6962,7 +6996,7 @@ function buildRaceModal({eyebrow,title,sub,seriesId,raceIdx,qualNote,crewPkg,exp
           onSubmit(result);
           // Attach condition to result for repair modal
           const _raceSnap=(G.schedules[seriesId]||[])[raceIdx];
-          const _condId=_raceSnap?.condition||'clear';
+          const _condId=(_raceSnap&&_raceSnap.condition)||'clear';
           result.condition=_condId;
           openRepairModal(seriesId, result, ()=>{
             maybeFireCalendarEvent();
@@ -7041,7 +7075,7 @@ function openRaceHistoryModal(seriesId, raceIdx) {
             h('th',null,'Driver'),
             h('th',null,'Interval'),
             h('th',null,'Fastest Lap'),
-            result.finishOrder[0]?.carClass?h('th',null,'Class'):null,
+            (result.finishOrder[0]&&result.finishOrder[0].carClass)?h('th',null,'Class'):null,
           ),
           ...result.finishOrder.map((entry,i) => {
             const isFastest = fastestSec !== null && lapTimeToSeconds(entry.lapTime) === fastestSec;
@@ -7176,7 +7210,7 @@ function openEditRaceResultModal(seriesId, raceIdx) {
       }
 
       // Poles
-      if (old.pole && !race.qualifying?.pole) G.poles = Math.max(0, G.poles - 1);
+      if (old.pole && !(race.qualifying&&race.qualifying.pole)) G.poles = Math.max(0, G.poles - 1);
 
       // Rep (rough reversal — just undo the same logic)
       const oldRepGain = old.dq ? -rand(3,6) : old.position===1 ? rand(5,9) : old.position<=3 ? rand(2,5) : old.position<=10 ? rand(0,2) : old.dnf ? -2 : -1;
@@ -7216,7 +7250,7 @@ function openEditRaceResultModal(seriesId, raceIdx) {
 
       // Update summary toast
       const _r = (G.schedules[seriesId]||[])[raceIdx];
-      if (_r?.result?.summary) showSummaryToast(_r.result.summary, s.color, s.short);
+      if ((_r&&_r.result&&_r.result.summary)) showSummaryToast(_r.result.summary, s.color, s.short);
 
       addLog(G, `✏️ Result corrected — ${s.short} R${race.round} @ ${race.track}: P${newResult.position}/${newResult.fieldSize}`);
 
@@ -7288,7 +7322,7 @@ async function tryGenerateSummary(state, seriesId, raceIdx, result) {
       body:JSON.stringify({model:'claude-opus-4-5',max_tokens:300,messages:[{role:'user',content:prompt}]}),
     });
     const data=await resp.json();
-    const text=data?.content?.[0]?.text;
+    const text=(data&&data.content&&data.content[0]&&data.content[0].text);
     if(text){
       showToast(text,s.color);
       G.log.push(`[S${G.season}] 📝 ${text}`);
@@ -7456,7 +7490,7 @@ function openRepairModal(seriesId, result, afterClose) {
   const content = h('div',{},
     h('div',{className:'modal-eyebrow'},'Post-Race'),
     h('div',{className:'modal-title'},'Repair & Maintenance'),
-    h('div',{className:'modal-sub'},`${s?.name||''} · ${result.dnf?'DNF — Mandatory repairs required':'Check what needs attention'}`),
+    h('div',{className:'modal-sub'},`${(s&&s.name)||''} · ${result.dnf?'DNF — Mandatory repairs required':'Check what needs attention'}`),
 
     // Car condition bars
     (() => {
@@ -7516,7 +7550,7 @@ function openRepairModal(seriesId, result, afterClose) {
         const total = calcTotal();
         G.money -= total;
         const items = REPAIR_ITEMS.filter(i=>checked[i.id]);
-        if (items.length) addLog(G, `🔧 Repairs @ ${s?.short||''}: ${items.map(i=>i.label).join(', ')} — ${fmtMoney(total)}`);
+        if (items.length) addLog(G, `🔧 Repairs @ ${(s&&s.short)||''}: ${items.map(i=>i.label).join(', ')} — ${fmtMoney(total)}`);
         // Restore car condition for repaired items
         if (!G.carCondition) G.carCondition={engine:100,suspension:100,chassis:100,tires:100,brakes:100};
         items.forEach(item=>{
@@ -7600,15 +7634,15 @@ const _origOpenRaceModal = openRaceModal;
 openRaceModal = function(seriesId, raceIdx) {
   const sched = G.schedules[seriesId]||[];
   const race  = sched[raceIdx];
-  const cond  = race?.condition ? CONDITIONS.find(c=>c.id===race.condition) : null;
+  const cond  = (race&&race.condition) ? CONDITIONS.find(c=>c.id===race.condition) : null;
 
   // Show pre-race condition card briefly, then open result modal
   if (cond) {
     const s = getSeries(seriesId);
     openModal(h('div',{},
-      h('div',{className:'modal-eyebrow'},`${s?.short||''} Round ${race?.round||''} — Race Day`),
-      h('div',{className:'modal-title'},race?.track||''),
-      h('div',{className:'modal-sub'},`${race?.city||''}, ${race?.state||''}`),
+      h('div',{className:'modal-eyebrow'},`${(s&&s.short)||''} Round ${(race&&race.round)||''} — Race Day`),
+      h('div',{className:'modal-title'},(race&&race.track)||''),
+      h('div',{className:'modal-sub'},`${(race&&race.city)||''}, ${(race&&race.state)||''}`),
       h('div',{style:{textAlign:'center',padding:'20px 0'}},
         h('div',{style:{fontSize:'64px',marginBottom:'8px'}},cond.icon),
         conditionBadge(cond.id),
