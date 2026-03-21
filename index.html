@@ -2640,6 +2640,37 @@ function integrateFinishOrder(state, seriesId, finishOrder) {
     }
     d.starts++;
   });
+
+  // Auto-fill empty teammate slots from known drivers in this race
+  const contract = (state.contracts||[]).find(c=>c.seriesId===seriesId);
+  if (contract && contract.teammates) {
+    const emptySlots = contract.teammates.filter(t=>!t||!t.name).length;
+    if (emptySlots > 0) {
+      const alreadyTm = (state.teammates||[]).map(t=>t.name.toLowerCase());
+      const candidates = finishOrder
+        .filter(e=>!e.isPlayer && e.name)
+        .map(e=>(state.drivers||[]).find(d=>d.name.toLowerCase()===e.name.toLowerCase()))
+        .filter(d=>d && d.source==='known' && !alreadyTm.includes(d.name.toLowerCase()));
+      let filled = 0;
+      contract.teammates = contract.teammates.map(t=>{
+        if ((!t||!t.name) && candidates[filled]) {
+          const d = candidates[filled++];
+          d.currentTeam = contract.team;
+          state.teammates.push({name:d.name, seriesId});
+          addLog(state, `📋 ${contract.team} teammate slot filled: ${d.name}`);
+          state.dramaQueue.push({
+            id: 'tm_assigned_'+uid(),
+            title: `${contract.team} Teammate Confirmed`,
+            effect: 'none',
+            desc: `${d.name} will be your teammate at ${contract.team} this season. They're in the same car program. Worth keeping an eye on how they run.`,
+            valence: 'neutral',
+          });
+          return {name:d.name, seriesId};
+        }
+        return t;
+      });
+    }
+  }
 }
 
 // ─── RACE RESULT PROCESSING ──────────────────────────────────────────────────
@@ -4356,6 +4387,7 @@ function renderContracts() {
             ['Entry Fee',fmtMoney(offer.entryFee||(getSeries(offer.seriesId)&&getSeries(offer.seriesId).fee)||0),'#EF4444'],
             ['Win Bonus',fmtMoney(offer.winBonus),'#F59E0B'],
             ['Req Finish',`Top ${offer.reqFinish}`,'#CBD5E1'],
+            ['Teammates', offer.teammates&&offer.teammates.length>0 ? `${offer.teammates.filter(t=>t.name).length}/${offer.teammates.length} filled` : 'None', '#94A3B8'],
           ].map(([l,v,c])=>h('div',{style:{background:'#060A10',borderRadius:'7px',padding:'9px 11px',border:'1px solid #1E2433'}},
             h('div',{style:{fontSize:'12px',color:'#94A3B8',textTransform:'uppercase',letterSpacing:'0.06em'}},l),
             h('div',{style:{fontSize:'14px',fontWeight:800,color:c||'#E5E7EB',marginTop:'2px'}},v),
@@ -4404,6 +4436,7 @@ function renderContracts() {
           ['Entry Fee',fmtMoney(offer.entryFee||(getSeries(offer.seriesId)&&getSeries(offer.seriesId).fee)||0),'#EF4444'],
           ['Win Bonus',fmtMoney(offer.winBonus),'#F59E0B'],
           ['Req Finish',`Top ${offer.reqFinish}`,'#CBD5E1'],
+          ['Teammates', offer.teammates&&offer.teammates.length>0 ? `${offer.teammates.length} slot${offer.teammates.length>1?'s':''}` : 'None', '#94A3B8'],
         ].map(([l,v,c])=>h('div',{style:{background:'#060A10',borderRadius:'7px',padding:'9px 11px',border:'1px solid #1E2433'}},
           h('div',{style:{fontSize:'12px',color:'#94A3B8',textTransform:'uppercase',letterSpacing:'0.06em'}},l),
           h('div',{style:{fontSize:'14px',fontWeight:800,color:c||'#E5E7EB',marginTop:'2px'}},v),
@@ -4436,7 +4469,7 @@ function renderContracts() {
               ? `Entry: ${fmtMoney(s.fee)}/race · You keep 100% prize`
               : `Entry: ${fmtMoney(c.entryFee||s.fee)}/race · Prize share: ${prizeSharePct}% yours · Win bonus: ${fmtMoney(c.winBonus)}`
           ),
-          c.teammates&&c.teammates.length?h('div',{style:{fontSize:'14px',color:'#94A3B8',marginTop:'2px'}},`Teammates: ${c.teammates.map(t=>t.name).join(', ')}`):null,
+          c.teammates&&c.teammates.filter(t=>t&&t.name).length?h('div',{style:{fontSize:'14px',color:'#94A3B8',marginTop:'2px'}},`Teammates: ${c.teammates.filter(t=>t&&t.name).map(t=>t.name).join(', ')}`):null,
         ),
         !c.indie?h('div',{style:{textAlign:'right',flexShrink:0}},
           h('div',{style:{fontSize:'12px',color:'#94A3B8'}},'EXIT PENALTY'),
@@ -4448,8 +4481,7 @@ function renderContracts() {
   }
 
   // ── Independent racing option ──────────────────────────────────────────────
-  f.appendChild(h('div',{className:'card',style:{marginTop:'20px',borderColor:'#64748B'}}),);
-  const indCard=f.lastElementChild||f.appendChild(h('div',{className:'card',style:{marginTop:'20px',borderColor:'#374151'}}));
+
   f.appendChild(h('div',{className:'card',style:{marginTop:'20px',borderColor:'#374151'}},
     h('div',{style:{display:'flex',gap:'14px',alignItems:'flex-start',flexWrap:'wrap'}},
       h('div',{style:{width:'48px',height:'48px',borderRadius:'8px',background:'#1E2433',border:'2px solid #374151',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'22px',flexShrink:0}},'🔧'),
@@ -5849,20 +5881,22 @@ function doSignContract(offer) {
       if(eligible.length){
         // Most-raced-with known driver is the most realistic choice
         driver=eligible.sort((a,b)=>(b.starts||0)-(a.starts||0))[0];
-      } else {
-        // No known drivers available — generate a fresh one for this team slot
-        let name=generateAIName();
-        while((G.drivers||[]).find(d=>d.name===name)) name=generateAIName();
-        driver=createDriver(name, rand(35,70), offer.seriesId, 'generated');
-        G.drivers.push(driver);
-        addLog(G,`📋 ${offer.team} teammate generated: ${name}`);
+    } else {
+        // No known drivers available — leave slot empty, will fill when a real driver appears
+        addLog(G,`📋 ${offer.team} teammate slot open — will fill from race results`);
+        continue;
       }
       driver.currentTeam=offer.team;
       driver.currentSeriesId=offer.seriesId;
       assigned.push(driver);
     }
-    offer.teammates=assigned.map(d=>({name:d.name,seriesId:offer.seriesId}));
-    assigned.forEach(d=>{
+// Keep unfilled slots as null placeholders so auto-fill can detect them
+    const filledCount = assigned.length;
+    const totalSlots = tmCount;
+    offer.teammates = [
+      ...assigned.map(d=>({name:d.name,seriesId:offer.seriesId})),
+      ...new Array(totalSlots - filledCount).fill(null),
+    ];    assigned.forEach(d=>{
       if(!(G.teammates||[]).find(t=>t.name===d.name))
         G.teammates.push({name:d.name,seriesId:offer.seriesId});
     });
