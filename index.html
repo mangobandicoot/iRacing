@@ -340,30 +340,8 @@ button:disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
      <script>
           document.addEventListener('DOMContentLoaded',function(){
             const sel=document.getElementById('driver-state-input');
-            if(!sel) return;
-            sel.innerHTML = '';
-            const states=[
-              'AL','AR','AZ','CA','CO','CT','DE','FL','GA','IA',
-              'ID','IL','IN','KS','KY','LA','MA','MD','ME','MI',
-              'MN','MO','MS','MT','NC','ND','NE','NH','NJ','NM',
-              'NV','NY','OH','OK','OR','PA','RI','SC','SD','TN',
-              'TX','UT','VA','VT','WA','WI','WV','WY','DC',
-            ];
-            const names={
-              AL:'Alabama',    AR:'Arkansas',      AZ:'Arizona',       CA:'California',
-              CO:'Colorado',   CT:'Connecticut',   DE:'Delaware',      FL:'Florida',
-              GA:'Georgia',    IA:'Iowa',          ID:'Idaho',         IL:'Illinois',
-              IN:'Indiana',    KS:'Kansas',        KY:'Kentucky',      LA:'Louisiana',
-              MA:'Massachusetts', MD:'Maryland',   ME:'Maine',         MI:'Michigan',
-              MN:'Minnesota',  MO:'Missouri',      MS:'Mississippi',   MT:'Montana',
-              NC:'North Carolina', ND:'North Dakota', NE:'Nebraska',   NH:'New Hampshire',
-              NJ:'New Jersey', NM:'New Mexico',    NV:'Nevada',        NY:'New York',
-              OH:'Ohio',       OK:'Oklahoma',      OR:'Oregon',        PA:'Pennsylvania',
-              RI:'Rhode Island', SC:'South Carolina', SD:'South Dakota', TN:'Tennessee',
-              TX:'Texas',      UT:'Utah',          VA:'Virginia',      VT:'Vermont',
-              WA:'Washington', WI:'Wisconsin',     WV:'West Virginia', WY:'Wyoming',
-              DC:'Washington D.C.',
-            };
+            if(!sel||sel.options.length>0) return;
+            const states=typeof US_STATES!=='undefined'?US_STATES:['NC','VA','TN','GA','SC','FL','TX','OH','IN','KY','WI','IL','PA','MI','International'];
             const names=typeof US_STATE_NAMES!=='undefined'?US_STATE_NAMES:{};
             const intlRegions=['Europe','Africa','Asia','South America','Central America','Australia'];
             // US states first
@@ -3734,8 +3712,9 @@ function buildSeasonSummary(state) {
 // FULL THROTTLE — UI Rendering
 // ═══════════════════════════════════════════════════════════════════════════════
 
-var G = null;
-var activeTab = 'dashboard';
+let G = null;
+let activeTab = 'dashboard';
+
 // ─── DOM HELPERS ─────────────────────────────────────────────────────────────
 function h(tag, attrs, ...children) {
   const el = document.createElement(tag);
@@ -4522,20 +4501,7 @@ function renderContracts() {
       })
     ),
   ));
-// Season complete banner
-  const allDone = G.contracts.length>0 && G.contracts.every(c=>{
-    const sched=G.schedules[c.seriesId]||[];
-    return sched.every(r=>r.result) && !sched.some(r=>r.fig8&&r.result&&!r.result.skipped&&!r.bonusResult);
-  });
-  if(allDone){
-    f.appendChild(h('div',{style:{marginTop:'14px',padding:'14px',background:'#0D1117',borderRadius:'8px',border:'1px solid #F59E0B44',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'10px'}},
-      h('div',null,
-        h('div',{style:{fontSize:'15px',fontWeight:800,color:'#F59E0B'}},'🏁 Season Complete!'),
-        h('div',{style:{fontSize:'14px',color:'#94A3B8',marginTop:'2px'}},'All races finished. Ready to advance.'),
-      ),
-      mkBtn(`Advance to Season ${G.season+1} →`,'btn btn-primary',openSeasonEndModal),
-    ));
-  }
+
   return f;
 }
 
@@ -4632,20 +4598,7 @@ function renderSchedule() {
     f.appendChild(section);
   });
   f.appendChild(h('div',{style:{fontSize:'14px',color:'#64748B',fontStyle:'italic'}},'Completed races: click for details. Upcoming: use ↑↓ to reorder anytime.'));
-// Season complete banner
-  const _allDone = G.contracts.length>0 && G.contracts.every(c=>{
-    const sched=G.schedules[c.seriesId]||[];
-    return sched.every(r=>r.result) && !sched.some(r=>r.fig8&&r.result&&!r.result.skipped&&!r.bonusResult);
-  });
-  if(_allDone){
-    f.appendChild(h('div',{style:{marginTop:'16px',padding:'14px',background:'#0D1117',borderRadius:'8px',border:'1px solid #F59E0B44',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'10px'}},
-      h('div',null,
-        h('div',{style:{fontSize:'15px',fontWeight:800,color:'#F59E0B'}},'🏁 Season Complete!'),
-        h('div',{style:{fontSize:'14px',color:'#94A3B8',marginTop:'2px'}},'All races finished. Ready to advance.'),
-      ),
-      mkBtn(`Advance to Season ${G.season+1} →`,'btn btn-primary',openSeasonEndModal),
-    ));
-  }
+
   // Add Race button — only shown when there's at least one active contract
   if(G.contracts.length){
     f.appendChild(h('div',{style:{marginTop:'18px'}},
@@ -5912,11 +5865,8 @@ function doSignContract(offer) {
     assigned.forEach(d=>{
       if(!(G.teammates||[]).find(t=>t.name===d.name))
         G.teammates.push({name:d.name,seriesId:offer.seriesId});
-      // Seed into seriesFields so they appear in standings immediately
-      if(!G.seriesFields[offer.seriesId]) G.seriesFields[offer.seriesId]={};
-      if(!G.seriesFields[offer.seriesId][d.name])
-        G.seriesFields[offer.seriesId][d.name]={points:0,wins:0,top5s:0,starts:0};
     });
+  }
   // Generate sponsor offers
   const fresh=sponsorOffersForSeries(offer.seriesId);
   fresh.forEach(sp=>{if(!G.sponsorOffers.find(s=>s.brand===sp.brand)) G.sponsorOffers.push(sp);});
@@ -7717,6 +7667,10 @@ openRaceModal = function(seriesId, raceIdx) {
     _origOpenRaceModal(seriesId, raceIdx);
   }
 };
+
+// Also patch advanceSeason button to show season end first
+function openSeasonEndModal() {
+  openSeasonEndModal();
 }
 </script>
 </body>
