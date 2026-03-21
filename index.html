@@ -675,6 +675,189 @@ const DRAMA = [
   { id:'new_sponsor_sniff',  weight:1, title:'New Sponsor Inquiring',      effect:'rep_fans', value:3,    fans:0,    desc:'A brand reached out through your team about potential sponsorship. Nothing signed but the door is open.' },
 ];
 
+// ─── MEDIA DAY SYSTEM ────────────────────────────────────────────────────────
+// Tier-scaled press interactions. Low tiers = local reporter. Cup = full circus.
+const MEDIA_DAY = {
+  // Format: { question, options: [{label, type, rep, fans, sponsorHappy, log}] }
+  // type: 'bold'|'safe'|'deflect'|'humble'|'trash'
+  tier12: {
+    label: 'Local Reporter',
+    color: '#94A3B8',
+    icon: '📰',
+    questions: [
+      "Local paper caught you after the race. \"How'd tonight go for you?\"",
+      "A reporter from the county paper wants a quote for their racing column.",
+      "Someone with a voice recorder and a press pass found you near your trailer.",
+      "The track announcer wants a word for the Facebook livestream.",
+      "A high school journalism student is covering the race for their school paper. They seem nervous.",
+    ],
+  },
+  tier3: {
+    label: 'Regional Beat Writer',
+    color: '#3B82F6',
+    icon: '🎙️',
+    questions: [
+      "The regional motorsport outlet caught you in the paddock. \"What's the plan for the rest of the season?\"",
+      "A beat writer who covers your series wants your take on the championship picture.",
+      "You're doing a quick spot for a regional racing podcast. They have about 8,000 listeners.",
+      "A reporter from the state's biggest paper is doing a motorsport feature. You made the list.",
+      "The series official media guy needs a quote for the weekly newsletter.",
+    ],
+  },
+  tier4: {
+    label: 'National Outlet',
+    color: '#F59E0B',
+    icon: '📡',
+    questions: [
+      "A national motorsport outlet has you scheduled for a proper sit-down. Cameras rolling.",
+      "You're doing a feature interview for one of the bigger racing publications. Sponsors are watching this one.",
+      "Pre-race media availability. Several outlets are present. Someone is going to ask about your rivals.",
+      "National TV wants a brief comment before qualifying. Keep it tight.",
+      "Your sponsor's PR team set up a media session. It's friendly but there are microphones.",
+    ],
+  },
+  tier567: {
+    label: 'Full Press Conference',
+    color: '#EC4899',
+    icon: '🎥',
+    questions: [
+      "Full pre-race press conference. Multiple outlets, cameras, the works. Someone is going to ask about the championship.",
+      "You're in the media center. The room is full. A reporter from a major outlet leads off: \"How are you feeling about your championship chances?\"",
+      "Post-race press conference. The result was notable enough to fill the room. Someone's going to ask about your rival.",
+      "National broadcast wants you for a segment. Prime time. Your sponsor bought ad space during the same show.",
+      "The series put you in the official post-race press conference. Top finishers only. The cameras are on.",
+    ],
+  },
+};
+
+const MEDIA_RESPONSES = [
+  {
+    label: 'Keep it professional',
+    type: 'safe',
+    rep: 2, fans: 50, sponsorHappy: 3,
+    log: 'Gave a clean, professional answer. Nobody offended. Nobody excited.',
+    lines: [
+      "\"We're focused on the work. Every race is a chance to improve and that's what we're doing.\"",
+      "\"The team has been putting in the hours. I'm just trying to execute on race day.\"",
+      "\"One race at a time. That's the only way to approach a season like this.\"",
+      "\"We're building something. I feel good about the direction we're headed.\"",
+    ],
+  },
+  {
+    label: 'Be bold',
+    type: 'bold',
+    rep: 4, fans: 200, sponsorHappy: 5,
+    log: 'Made a confident statement. People are paying attention.',
+    lines: [
+      "\"We're here to win. Not to participate. To win. I think we've shown we can do that.\"",
+      "\"I think anyone watching the last few races can see what we're capable of. We're not done.\"",
+      "\"The championship is the goal. It's always been the goal. We haven't changed our mind about that.\"",
+      "\"I'm not interested in being a contender. I'm interested in being the champion. There's a difference.\"",
+    ],
+  },
+  {
+    label: 'Call out a rival',
+    type: 'trash',
+    rep: -1, fans: 400, sponsorHappy: -5,
+    log: 'Made it personal. Fans loved it. Sponsors slightly nervous.',
+    lines: [
+      "\"There are drivers in this field who've had a lot to say lately. I'd rather let the results do the talking. Mine have been pretty loud.\"",
+      "\"I've heard what some people in this paddock have been saying. I'll respond on track. That's the only response that matters.\"",
+      "\"Someone asked me about [rival]. I'll say this — I know where they finish and they know where I finish. The scoreboard is public.\"",
+      "\"There's a driver or two in this series who confuse confidence with results. Different things.\"",
+    ],
+  },
+  {
+    label: 'Stay humble',
+    type: 'humble',
+    rep: 3, fans: 100, sponsorHappy: 8,
+    log: 'Came across well. Sponsors particularly happy with the tone.',
+    lines: [
+      "\"I've got a lot to learn still. Every week teaches me something. I'm just grateful for the opportunity.\"",
+      "\"The team deserves the credit. I show up and drive. They make it possible.\"",
+      "\"I don't take any of this for granted. There are a lot of talented people in this paddock. I know that.\"",
+      "\"We're not where we want to be yet. We know that. We're working on it every day.\"",
+    ],
+  },
+  {
+    label: 'Deflect and joke',
+    type: 'deflect',
+    rep: 1, fans: 150, sponsorHappy: 2,
+    log: 'Kept it light. No controversy. Some charm points.',
+    lines: [
+      "\"Ask me again after the checkered flag. I'll have a better answer then.\"",
+      "\"I'll tell you what — let's revisit that question at the end of the season. I think the answer will be clearer.\"",
+      "\"My crew chief told me not to say anything interesting in press conferences. So I won't say anything interesting.\"",
+      "\"You know what they say — let the car do the talking. Mine's been pretty chatty lately.\"",
+    ],
+  },
+];
+
+function doMediaDay(tier) {
+  const tierKey = tier<=2?'tier12':tier===3?'tier3':tier===4?'tier4':'tier567';
+  const config = MEDIA_DAY[tierKey];
+  const question = config.questions[rand(0,config.questions.length-1)];
+
+  // Scale effects by tier
+  const tierMult = [1,1,1.5,2,3,4,5][Math.min(tier,6)];
+
+  openModal(h('div',null,
+    h('div',{className:'modal-eyebrow'},config.icon+' '+config.label),
+    h('div',{className:'modal-title'},'Media Availability'),
+    h('div',{style:{
+      background:'#060A10',border:'1px solid #1E2433',borderRadius:'8px',
+      padding:'14px',marginBottom:'16px',fontSize:'14px',color:'#CBD5E1',
+      lineHeight:'1.6',borderLeft:`3px solid ${config.color}`,
+    }},question),
+    h('div',{style:{fontSize:'13px',color:'#94A3B8',marginBottom:'12px'}},'How do you handle it?'),
+    h('div',{style:{display:'flex',flexDirection:'column',gap:'8px'}},
+      ...MEDIA_RESPONSES.map(resp=>{
+        const scaledRep  = Math.round(resp.rep  * tierMult);
+        const scaledFans = Math.round(resp.fans * tierMult);
+        return h('button',{
+          className:'btn btn-secondary',
+          style:{textAlign:'left',padding:'10px 14px'},
+          onClick:()=>{
+            G.reputation = Math.max(0, G.reputation + scaledRep);
+            G.fans       = Math.max(0, G.fans + scaledFans);
+            G.sponsors   = G.sponsors.map(sp=>({...sp,happiness:clamp(sp.happiness+resp.sponsorHappy,0,100)}));
+            const quote  = resp.lines[rand(0,resp.lines.length-1)];
+            const repStr = scaledRep!==0?` Rep ${scaledRep>0?'+':''}${scaledRep}`:'';
+            const fanStr = scaledFans!==0?` Fans ${scaledFans>0?'+':''}${fmtFans(scaledFans)}`:'';
+            addLog(G,`🎙️ Media day (${config.label}): ${resp.label}.${repStr}${fanStr}`);
+            // Store last media quote for dashboard display
+            G.lastMediaQuote = { quote, type:resp.type, tier, week:G.week, label:config.label };
+            saveGame();
+            openModal(h('div',null,
+              h('div',{className:'modal-eyebrow'},config.label),
+              h('div',{className:'modal-title'},'You said:'),
+              h('div',{style:{
+                background:'#060A10',borderRadius:'8px',padding:'14px',
+                marginBottom:'16px',fontSize:'15px',color:'#F1F5F9',
+                lineHeight:'1.7',fontStyle:'italic',borderLeft:`3px solid ${config.color}`,
+              }},`"${quote}"`),
+              h('div',{style:{display:'flex',gap:'16px',marginBottom:'16px'}},
+                scaledRep!==0?h('div',{style:{fontSize:'14px',fontWeight:700,color:scaledRep>0?'#10B981':'#EF4444'}},`Rep ${scaledRep>0?'+':''}${scaledRep}`):null,
+                scaledFans!==0?h('div',{style:{fontSize:'14px',fontWeight:700,color:'#EC4899'}},`+${fmtFans(scaledFans)} fans`):null,
+                resp.sponsorHappy!==0?h('div',{style:{fontSize:'14px',fontWeight:700,color:resp.sponsorHappy>0?'#10B981':'#EF4444'}},`Sponsors ${resp.sponsorHappy>0?'+':''}${resp.sponsorHappy}%`):null,
+              ),
+              h('div',{className:'modal-actions'},mkBtn('Done','btn btn-primary',()=>{render();closeModal();})),
+            ));
+          },
+        },
+          h('div',{style:{fontWeight:700,fontSize:'14px'}},resp.label),
+          h('div',{style:{fontSize:'12px',color:'#94A3B8',marginTop:'2px'}},
+            [scaledRep!==0?`Rep ${scaledRep>0?'+':''}${scaledRep}`:null,
+             scaledFans!==0?`+${fmtFans(scaledFans)} fans`:null,
+             resp.sponsorHappy!==0?`Sponsors ${resp.sponsorHappy>0?'+':''}${resp.sponsorHappy}%`:null,
+            ].filter(Boolean).join(' · ')
+          ),
+        );
+      }),
+      mkBtn('No comment','btn btn-ghost btn-sm',closeModal),
+    ),
+  ));
+}  
 // ─── SOCIAL MEDIA POSTS ───────────────────────────────────────────────────────
 const SOCIAL_POSTS = {
   positive: [
@@ -1842,7 +2025,12 @@ function maybeFireUnpromptedCallout(state, seriesId, result) {
     .map(d => d.name)
     .filter(n => n.toLowerCase() !== state.driverName.toLowerCase());
 
-  const pool = [...new Set([...fieldDrivers, ...knownInSeries])];
+  // Boost substitute drivers — they're in the spotlight right now
+  const subDrivers = (state.drivers||[])
+    .filter(d => d.substituteFor && d.active && d.currentSeriesId===seriesId)
+    .map(d => d.name);
+  // Add sub names twice to increase their chance of being picked
+  const pool = [...new Set([...fieldDrivers, ...knownInSeries, ...subDrivers, ...subDrivers])];
   if (!pool.length) return;
 
   const name = pool[rand(0, pool.length-1)];
@@ -1883,6 +2071,23 @@ function maybeFireUnpromptedCallout(state, seriesId, result) {
   }
 
   const effect = isPositive ? 'rep_fans' : 'none';
+  // Apply immediate passive effect — paddock talk has weight
+  if (isPositive) {
+    state.reputation = Math.max(0, state.reputation + rand(1,3));
+    state.fans = Math.max(0, state.fans + rand(50,200));
+    // Push toward friend/racing_rival
+    touchRival(state.rivals, name, 'close', true);
+  } else {
+    // Shade — nudge toward rivalry, no rep hit unless they're already a rival
+    const existing = (state.rivals||[]).find(r=>r.name===name);
+    const rel = existing ? relationship(existing) : null;
+    if (rel==='rival'||rel==='frenemy') {
+      state.reputation = Math.max(0, state.reputation - 1);
+    }
+    touchRival(state.rivals, name, 'incident', false);
+  }
+
+  const effect = isPositive ? 'rep_fans' : 'none';
   state.dramaQueue.push({
     id: 'unprompted_'+uid(),
     title: isPositive ? `${name} Mentions You` : `${name} Has Opinions`,
@@ -1896,6 +2101,7 @@ function maybeFireUnpromptedCallout(state, seriesId, result) {
     _calloutDriver: name,
   });
 }
+
 // ─── DRIVER CALLOUT SYSTEM ───────────────────────────────────────────────────
 // After a race, drivers you had incidents with or finished close to have a
 // chance to call you out publicly. You choose how to respond. The response
@@ -2370,6 +2576,7 @@ function initState(name) {
     confidence: 0,
     spotter: null,
     milestones: [],
+    playerInjury: null,  // { racesOut, subName, seriesId } or null
     offseasonOffers: [],
     offseasonPhase: false,
     carCondition: {
@@ -2817,7 +3024,7 @@ const _fanMult = [1,1,1.5,2,5,15,40,100][getSeries(seriesId)?.tier||1]||1;
     const recentAvg = state.raceHistory
       .filter(r=>r.seriesId===seriesId&&r.season===state.season&&!r.dnf)
       .reduce((s,r,_,a)=>s+r.pos/a.length,0);
-    if(!result.dnf&&result.position>contract.reqFinish&&contract.racesCompleted>3) {
+   if(!result.dnf&&!result._injuryRace&&result.position>contract.reqFinish&&contract.racesCompleted>3) {
       contract.missedFinishWarnings=(contract.missedFinishWarnings||0)+1;
       if(contract.missedFinishWarnings===1) {
         state.dramaQueue.push({id:'warn_'+uid(),title:'Team Warning',effect:'none',
@@ -2847,8 +3054,12 @@ if(Math.random()<0.10){
     const d=_rollDrama(state);
     if(d) state.dramaQueue.push(d);
   }
-  maybeFireUnpromptedCallout(state, seriesId, result);
+ maybeFireUnpromptedCallout(state, seriesId, result);
   maybeFireSeriesNews(state, seriesId);
+  // Injury rolls — player and AI
+  processPlayerInjury(state, seriesId, result);
+  processAIInjuries(state, seriesId, result.finishOrder||[]);
+  tickAIInjuries(state, seriesId);
   if(state.week%6===0){
     const fresh=generateOffers(state.reputation,state.fans);
     fresh.forEach(o=>{if(!state.pendingOffers.find(p=>p.seriesId===o.seriesId)) state.pendingOffers.push(o);});
@@ -3623,6 +3834,7 @@ function loadGame() {
       if (!G.carCondition) G.carCondition = {engine:100,suspension:100,chassis:100,tires:100,brakes:100};
       if (!G.homeState) G.homeState = 'NC'; // migration: default for saves before v1.5
       if (!G.playerBio) G.playerBio = '';
+      if (!G.playerInjury) G.playerInjury = null;
       // Migration v1.5.1: backfill homeState on all drivers missing it
       // (known drivers from pasted results and old generated drivers have no homeState)
       if (G.drivers && typeof randomHomeState !== 'undefined') {
@@ -4570,6 +4782,7 @@ function renderStandings() {
       const isP=row.isPlayer;
       const isTm=!isP&&tmNames.has(row.name.toLowerCase());
       const rival=!isP?(G.rivals||[]).find(r=>r.name.toLowerCase()===row.name.toLowerCase()):null;
+      const isInjured=!isP&&(G.drivers||[]).some(d=>d.name.toLowerCase()===row.name.toLowerCase()&&d.injuredOrPenalized);
       const rel=rival?relationship(rival):null;
       const nameColor=isP?s.color:isTm?'#3B82F6':'#D1D5DB';
       let relBadge=null;
@@ -4585,6 +4798,7 @@ function renderStandings() {
         h('td',{style:{color:nameColor}},row.name,
           isP?h('span',{style:{fontSize:'10px',color:s.color,marginLeft:'5px',fontWeight:700}},'YOU'):null,
           relBadge,
+          isInjured?h('span',{style:{fontSize:'10px',color:'#EF4444',marginLeft:'5px',fontWeight:700,background:'#7F1D1D22',border:'1px solid #EF444444',padding:'1px 4px',borderRadius:'3px'}},'INJ'):null,
         ),
         h('td',{style:{fontWeight:isP?800:400,color:isP?s.color:'#E5E7EB'}},row.points),
         h('td',{style:{color:'#CBD5E1'}},row.wins),
@@ -4697,7 +4911,34 @@ function renderBusiness() {
   const f=document.createDocumentFragment();
   f.appendChild(h('div',{className:'page-title'},'Business'));
   f.appendChild(h('div',{className:'page-sub'},'Sponsorships, off-track events, crew packages, and merch.'));
-
+// ── Media Day ───────────────────────────────────────────────────────────────
+  const activeTier = G.contracts.length
+    ? Math.max(...G.contracts.map(c=>getSeries(c.seriesId)?.tier||1))
+    : 1;
+  const mediaDayUsed = (G.offTrackDone||[]).includes('media_day_s'+G.season);
+  const tierKey = activeTier<=2?'tier12':activeTier===3?'tier3':activeTier===4?'tier4':'tier567';
+  const mediaCfg = MEDIA_DAY[tierKey];
+  f.appendChild(h('div',{className:'card',style:{marginBottom:'18px'}},
+    h('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'10px'}},
+      h('div',null,
+        cardTitle(mediaCfg.icon+' '+mediaCfg.label),
+        h('div',{style:{fontSize:'14px',color:'#94A3B8'}},
+          activeTier<=2 ? 'A local reporter wants a quote. Once per season.' :
+          activeTier===3 ? 'Regional coverage. Your words travel further now. Once per season.' :
+          activeTier===4 ? 'National outlet. Sponsors are watching. Once per season.' :
+          'Full press conference. Everything you say gets clipped. Once per season.'
+        ),
+      ),
+      mediaDayUsed
+        ? badge('Done this season','#64748B')
+        : mkBtn('Do Media Day','btn btn-primary',()=>{
+            if(!G.offTrackDone) G.offTrackDone=[];
+            G.offTrackDone.push('media_day_s'+G.season);
+            saveGame();
+            doMediaDay(activeTier);
+          }),
+    ),
+  ));
   // ── Social Media ────────────────────────────────────────────────────────────
   const smCard = h('div',{className:'card',style:{marginBottom:'18px'}});
   smCard.appendChild(cardTitle('Social Media'));
@@ -5065,8 +5306,7 @@ function renderDrivers() {
     if(!filtered.length){container.appendChild(h('div',{style:{color:'#94A3B8',padding:'16px',textAlign:'center'}},'No drivers.'));return;}
     filtered.forEach(d=>{
       const s=getSeries(d.currentSeriesId);
-      const injBadge=d.injuredOrPenalized?badge('INJ/PEN','#EF4444'):null;
-      const homeStr = d.homeState
+const injBadge=d.injuredOrPenalized?badge('INJ/PEN','#EF4444'):d.substituteFor?badge(`SUB for ${d.substituteFor}`,'#F97316'):null;      const homeStr = d.homeState
         ? ((typeof US_STATE_NAMES!=='undefined'?US_STATE_NAMES[d.homeState]:null)||d.homeState)
         : null;
 
@@ -5188,51 +5428,112 @@ function renderLog() {
 // ─── CAREER HISTORY ───────────────────────────────────────────────────────────
 function renderHistory() {
   const f=document.createDocumentFragment();
-  f.appendChild(h('div',{className:'page-title'},'Career History'));
-  f.appendChild(h('div',{className:'page-sub'},`${G.driverName} · Season ${G.season} · ${G.starts} career starts`));
+  f.appendChild(h('div',{className:'page-title'},'Career Legacy'));
+  f.appendChild(h('div',{className:'page-sub'},`${G.driverName} · ${G.starts} starts · ${G.wins} wins · ${(G.seasonHistory||[]).length} seasons`));
 
   const history=(G.seasonHistory||[]).slice().reverse();
   if(!history.length){
-    f.appendChild(h('div',{className:'card',style:{textAlign:'center',padding:'32px',color:'#94A3B8'}},'Complete a season to see your history here.'));
+    f.appendChild(h('div',{className:'card',style:{textAlign:'center',padding:'32px',color:'#94A3B8'}},'Complete a season to build your legacy.'));
     return f;
   }
 
-  // Career totals bar
+  // ── Career stat bar ──────────────────────────────────────────────────────────
   f.appendChild(h('div',{className:'card',style:{marginBottom:'14px'}},
     cardTitle('Career Totals'),
-    h('div',{style:{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'10px'}},
+    h('div',{style:{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'10px',marginBottom:'12px'}},
       miniStatBox('Seasons',history.length,'#F59E0B'),
-      miniStatBox('Career Wins',G.wins,'#F59E0B'),
+      miniStatBox('Wins',G.wins,'#F59E0B'),
       miniStatBox('Top 5s',G.top5s,'#10B981'),
+      miniStatBox('Poles',G.poles,'#8B5CF6'),
+    ),
+    h('div',{style:{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'10px'}},
       miniStatBox('Earnings',fmtMoney(G.totalPrizeMoney),'#10B981'),
+      miniStatBox('Fans',fmtFans(G.fans),'#EC4899'),
+      miniStatBox('Rep',G.reputation,'#F59E0B'),
+      miniStatBox('Championships',(G.seasonHistory||[]).reduce((a,s)=>a+(s.championships||[]).filter(c=>c.pos===1).length,0),'#F59E0B'),
     ),
   ));
 
-  // Season cards
-  history.forEach(s=>{
-    const champStr=s.championships&&s.championships.length
-      ? s.championships.map(c=>`${c.seriesShort} P${c.pos}`).join(' · ')
-      : 'No championship data';
-    const confLabel=s.confidence>1?'🔥 Hot':s.confidence>0?'📈 Good':s.confidence<-1?'❄️ Cold':s.confidence<0?'📉 Rough':'—';
-    const confColor=s.confidence>0?'#10B981':s.confidence<0?'#EF4444':'#94A3B8';
+  // ── Series ladder climbed ────────────────────────────────────────────────────
+  const seriesRaced = [...new Set((G.raceHistory||[]).map(r=>r.seriesId))];
+  if(seriesRaced.length){
+    f.appendChild(h('div',{className:'card',style:{marginBottom:'14px'}},
+      cardTitle('Series Climbed'),
+      h('div',{style:{display:'flex',gap:'8px',flexWrap:'wrap'}},
+        ...SERIES
+          .filter(s=>seriesRaced.includes(s.id))
+          .sort((a,b)=>a.tier-b.tier)
+          .map(s=>{
+            const wins=(G.raceHistory||[]).filter(r=>r.seriesId===s.id&&r.pos===1&&!r.dnf&&!r.dq).length;
+            const starts=(G.raceHistory||[]).filter(r=>r.seriesId===s.id).length;
+            const champ=(G.seasonHistory||[]).some(sh=>(sh.championships||[]).some(c=>c.seriesId===s.id&&c.pos===1));
+            return h('div',{style:{
+              background:s.color+'14',border:`1px solid ${s.color}44`,
+              borderRadius:'8px',padding:'10px 14px',minWidth:'130px',
+            }},
+              h('div',{style:{fontSize:'13px',fontWeight:800,color:s.color,marginBottom:'4px'}},s.short),
+              champ?h('div',{style:{fontSize:'12px',color:'#F59E0B',fontWeight:700,marginBottom:'3px'}},'🏆 Champion'):null,
+              h('div',{style:{fontSize:'12px',color:'#94A3B8'}},`${starts} starts · ${wins} wins`),
+            );
+          })
+      ),
+    ));
+  }
 
-    f.appendChild(h('div',{className:'card',style:{marginBottom:'10px'}},
-      h('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'12px',flexWrap:'wrap',gap:'8px'}},
-        h('div',{style:{fontSize:'18px',fontWeight:900,color:'#F9FAFB'}},`Season ${s.season}`),
-        h('div',{style:{fontSize:'14px',color:'#94A3B8'}},champStr),
-        h('div',{style:{fontSize:'14px',fontWeight:700,color:confColor}},confLabel),
+  // ── Rivals made ─────────────────────────────────────────────────────────────
+  const notableRivals=(G.rivals||[]).filter(r=>relationship(r)!=='acquaintance').sort((a,b)=>{
+    const o={rival:0,frenemy:1,racing_rival:2,friend:3};
+    return (o[relationship(a)]||4)-(o[relationship(b)]||4);
+  });
+  if(notableRivals.length){
+    f.appendChild(h('div',{className:'card',style:{marginBottom:'14px'}},
+      cardTitle('Rivalries & Relationships'),
+      h('div',{style:{display:'flex',gap:'8px',flexWrap:'wrap'}},
+        ...notableRivals.slice(0,12).map(r=>{
+          const rel=relationship(r);
+          const col=REL_COLOR[rel]||'#94A3B8';
+          return h('div',{style:{
+            background:col+'14',border:`1px solid ${col}44`,
+            borderRadius:'7px',padding:'8px 12px',
+          }},
+            h('div',{style:{fontSize:'13px',fontWeight:800,color:'#F9FAFB'}},r.name),
+            h('div',{style:{fontSize:'11px',color:col,fontWeight:700,marginTop:'2px'}},REL_LABEL[rel]||rel.toUpperCase()),
+            h('div',{style:{fontSize:'11px',color:'#64748B',marginTop:'2px'}},`${r.incidents||0} inc · ${r.closeRaces||0} close`),
+          );
+        })
       ),
-      h('div',{style:{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'8px',marginBottom:'10px'}},
-        miniStatBox('Starts',s.races,'#3B82F6'),
-        miniStatBox('Wins',s.wins,'#F59E0B'),
-        miniStatBox('Top 5s',s.top5s,'#10B981'),
-        miniStatBox('DNFs',s.dnfs,'#EF4444'),
-      ),
-      h('div',{style:{display:'flex',gap:'24px',flexWrap:'wrap',fontSize:'14px',color:'#94A3B8',borderTop:'1px solid #1E2433',paddingTop:'10px'}},
-        h('span',null,'Prize: ',h('span',{style:{color:'#10B981',fontWeight:700}},fmtMoney(s.prize))),
-        h('span',null,'Rep: ',h('span',{style:{color:'#F59E0B',fontWeight:700}},s.rep)),
-        h('span',null,'Fans: ',h('span',{style:{color:'#EC4899',fontWeight:700}},fmtFans(s.fans))),
-        h('span',null,'Bank: ',h('span',{style:{color:'#F9FAFB',fontWeight:700}},fmtMoney(s.money))),
+    ));
+  }
+
+  // ── Season by season timeline ────────────────────────────────────────────────
+  f.appendChild(h('div',{style:{marginBottom:'8px',fontSize:'14px',fontWeight:700,color:'#94A3B8',letterSpacing:'0.1em',textTransform:'uppercase'}},'Season Timeline'));
+  history.forEach(s=>{
+    const champs=(s.championships||[]).filter(c=>c.pos===1);
+    const bestFinish=(s.championships||[]).reduce((best,c)=>c.pos<best?c.pos:best,99);
+    const borderColor=champs.length?'#F59E0B':bestFinish<=3?'#10B981':bestFinish<=10?'#3B82F6':'#1E2433';
+    const icon=champs.length?'🏆':bestFinish<=3?'🥈':bestFinish<=5?'⭐':s.wins>0?'✅':'🏁';
+
+    f.appendChild(h('div',{className:'card',style:{marginBottom:'8px',borderColor}},
+      h('div',{style:{display:'flex',alignItems:'flex-start',gap:'14px',flexWrap:'wrap'}},
+        h('div',{style:{fontSize:'28px',lineHeight:1,flexShrink:0,marginTop:'2px'}},icon),
+        h('div',{style:{flex:1}},
+          h('div',{style:{display:'flex',alignItems:'center',gap:'10px',marginBottom:'6px',flexWrap:'wrap'}},
+            h('div',{style:{fontSize:'16px',fontWeight:900,color:'#F9FAFB'}},`Season ${s.season}`),
+            ...(s.championships||[]).map(c=>{
+              const sc=getSeries(c.seriesId);
+              const col=c.pos===1?'#F59E0B':c.pos<=3?'#CBD5E1':c.pos<=10?'#10B981':'#94A3B8';
+              return badge(`${sc?.short||c.seriesShort||''} P${c.pos}`,col);
+            }),
+          ),
+          h('div',{style:{display:'flex',gap:'16px',flexWrap:'wrap',fontSize:'13px',color:'#94A3B8'}},
+            h('span',null,h('span',{style:{color:'#F59E0B',fontWeight:700}},s.wins),' wins'),
+            h('span',null,h('span',{style:{color:'#10B981',fontWeight:700}},s.top5s),' top 5s'),
+            h('span',null,h('span',{style:{color:'#EF4444',fontWeight:700}},s.dnfs),' DNFs'),
+            h('span',null,h('span',{style:{color:'#10B981',fontWeight:700}},fmtMoney(s.prize)),' earned'),
+            h('span',null,h('span',{style:{color:'#EC4899',fontWeight:700}},fmtFans(s.fans)),' fans'),
+            h('span',null,'Rep: ',h('span',{style:{color:'#F59E0B',fontWeight:700}},s.rep)),
+          ),
+        ),
       ),
     ));
   });
@@ -5750,7 +6051,180 @@ function doPRSpend(item) {
   addLog(G, `📣 PR: ${item.label} — ${fmtMoney(item.cost)} → ${gained}`);
   saveGame(); render();
 }
+// ─── INJURY SYSTEM ───────────────────────────────────────────────────────────
+function tickAIInjuries(state, seriesId) {
+  (state.drivers||[]).forEach(d => {
+    if (!d.injuredOrPenalized || !d._injuryRacesOut) return;
+    // Only tick drivers in the same series as the race just run
+    if (d.currentSeriesId !== seriesId) return;
+    d._injuryRacesOut--;
+    if (d._injuryRacesOut <= 0) {
+      // Driver recovers
+      d.injuredOrPenalized = false;
+      const subName = d._subName;
+      d._subName = null;
+      d._injuryRacesOut = null;
+      // Mark sub inactive
+      if (subName) {
+        const sub = (state.drivers||[]).find(dr=>dr.name===subName);
+        if (sub) sub.active = false;
+      }
+      const isRival  = (state.rivals||[]).some(r=>r.name===d.name&&['rival','frenemy'].includes(relationship(r)));
+      const isFriend = (state.rivals||[]).some(r=>r.name===d.name&&['friend','racing_rival'].includes(relationship(r)));
+      const isTm     = (state.teammates||[]).some(t=>t.name===d.name);
+      let valence = 'neutral';
+      let extra = '';
+      if (isRival)  { valence='bad';  extra=' Your rival is back. Keep your head on a swivel.'; }
+      if (isFriend) { valence='good'; extra=' Good to see them back.'; }
+      if (isTm)     { valence='good'; extra=' Your teammate is back in the car.'; }
+      state.dramaQueue.push({
+        id:'ai_rec_'+uid(),
+        title:`${d.name} Returns`,
+        effect:'none',
+        desc:`${d.name} has been medically cleared and returns to racing this week.${subName?` Remove ${subName} from your iRacing lineup.`:''}${extra}`,
+        valence,
+      });
+      addLog(state,`✅ ${d.name} recovered from injury. ${subName||'Sub'} relieved.`);
+    } else {
+      // Still injured — pre-race reminder if notable
+      const isRival = (state.rivals||[]).some(r=>r.name===d.name&&['rival','frenemy'].includes(relationship(r)));
+      const isTm    = (state.teammates||[]).some(t=>t.name===d.name);
+      if (isRival || isTm) {
+        state.dramaQueue.push({
+          id:'ai_inj_rem_'+uid(),
+          title:`${d.name} Still Out`,
+          effect:'none',
+          desc:`${d.name} remains sidelined. ${d._subName||'Their substitute'} starts again this week. ${d._injuryRacesOut} race${d._injuryRacesOut>1?'s':''} remaining.`,
+          valence: isRival?'good':'neutral',
+        });
+      }
+    }
+  });
+}
+function rollInjuryChance(result) {
+  // Base chance per race
+  let chance = 0.04; // 4% base
+  if (result.dnf) chance += 0.08;
+  if ((result.incidentDrivers||[]).length > 0) chance += 0.04;
+  if (result.dnfReason && /crash|rollover|fire|wall|flip/i.test(result.dnfReason)) chance += 0.10;
+  return Math.random() < chance;
+}
 
+function rollAIInjuryChance(driver, seriesId) {
+  // 3% base chance per race per AI driver
+  return Math.random() < 0.03;
+}
+
+function getInjuryLength() {
+  // 1-4 races out, weighted toward shorter
+  const roll = Math.random();
+  if (roll < 0.50) return 1;
+  if (roll < 0.80) return 2;
+  if (roll < 0.95) return 3;
+  return 4;
+}
+
+function processPlayerInjury(state, seriesId, result) {
+  if (state.playerInjury) return; // already injured
+  if (!rollInjuryChance(result)) return;
+
+  const racesOut = getInjuryLength();
+  // Generate substitute driver name
+  let subName = generateAIName();
+  while ((state.drivers||[]).find(d=>d.name===subName)) subName = generateAIName();
+
+  // Add sub to driver database
+  const subDriver = createDriver(subName, rand(35,65), seriesId, 'generated');
+  subDriver.substituteFor = state.driverName;
+  state.drivers.push(subDriver);
+
+  state.playerInjury = { racesOut, subName, seriesId, racesRemaining: racesOut };
+
+  const desc = `${state.driverName} has been injured and will miss the next ${racesOut} race${racesOut>1?'s':''}. ${subName} will substitute. Add ${subName} to your iRacing lineup.`;
+  state.dramaQueue.push({
+    id:'player_inj_'+uid(),
+    title:'⛑️ You Are Injured',
+    effect:'none',
+    desc,
+    valence:'bad',
+  });
+  addLog(state, `⛑️ Player injured — out ${racesOut} race${racesOut>1?'s':''}. Sub: ${subName}`);
+
+  // Sponsor concern
+  state.sponsors.forEach(sp=>{
+    sp.happiness = clamp(sp.happiness - 8, 0, 100);
+  });
+}
+
+function processAIInjuries(state, seriesId, finishOrder) {
+  const field = finishOrder.filter(e=>!e.isPlayer&&e.name);
+  field.forEach(entry=>{
+    const driver = (state.drivers||[]).find(d=>d.name.toLowerCase()===entry.name.toLowerCase());
+    if (!driver || driver.injuredOrPenalized) return;
+    if (!rollAIInjuryChance(driver, seriesId)) return;
+
+    driver.injuredOrPenalized = true;
+    const racesOut = getInjuryLength();
+    driver._injuryRacesOut = racesOut;
+
+    // Generate sub
+    let subName = generateAIName();
+    while ((state.drivers||[]).find(d=>d.name===subName)) subName = generateAIName();
+    const sub = createDriver(subName, rand(30,60), seriesId, 'generated');
+    sub.substituteFor = driver.name;
+    state.drivers.push(sub);
+    driver._subName = subName;
+
+    const isRival = (state.rivals||[]).some(r=>r.name===driver.name&&['rival','frenemy'].includes(relationship(r)));
+    const isFriend = (state.rivals||[]).some(r=>r.name===driver.name&&['friend','racing_rival'].includes(relationship(r)));
+    const isTm = (state.teammates||[]).some(t=>t.name===driver.name);
+
+    let title = `${driver.name} Injured`;
+    let valence = 'neutral';
+    let extra = '';
+    if (isRival)  { title = `Rival Injured: ${driver.name}`; valence='good';    extra=' Your rival is out.'; }
+    if (isFriend) { title = `${driver.name} Injured`;         valence='bad';    extra=' Hate to see it.'; }
+    if (isTm)     { title = `Teammate Injured: ${driver.name}`; valence='bad';  extra=' The team will need to adjust.'; }
+
+    state.dramaQueue.push({
+      id:'ai_inj_'+uid(),
+      title,
+      effect:'none',
+      desc:`${driver.name} is out for ${racesOut} race${racesOut>1?'s':''}. ${subName} steps in as substitute. Add ${subName} to your iRacing lineup.${extra}`,
+      valence,
+    });
+    addLog(state,`⛑️ ${driver.name} injured — out ${racesOut} races. Sub: ${subName}`);
+  });
+}
+
+function tickPlayerInjury(state) {
+  if (!state.playerInjury) return false;
+  state.playerInjury.racesRemaining--;
+  if (state.playerInjury.racesRemaining <= 0) {
+    // Recover
+    const subDriver = (state.drivers||[]).find(d=>d.name===state.playerInjury.subName);
+    if (subDriver) subDriver.active = false;
+    state.dramaQueue.push({
+      id:'player_rec_'+uid(),
+      title:'✅ You Are Cleared to Race',
+      effect:'none',
+      desc:`${state.driverName} has been medically cleared. Remove ${state.playerInjury.subName} from your iRacing lineup and race your own car.`,
+      valence:'good',
+    });
+    addLog(state,`✅ Player recovered from injury. ${state.playerInjury.subName} relieved.`);
+    state.playerInjury = null;
+    return false;
+  }
+  // Still injured — pre-race reminder
+  state.dramaQueue.push({
+    id:'player_inj_rem_'+uid(),
+    title:'⛑️ Still Injured',
+    effect:'none',
+    desc:`${state.driverName} is still recovering. ${state.playerInjury.subName} starts again this race. ${state.playerInjury.racesRemaining} race${state.playerInjury.racesRemaining>1?'s':''} remaining.`,
+    valence:'bad',
+  });
+  return true; // still injured
+}
 // ─── QUALIFYING MODAL ────────────────────────────────────────────────────────
 function openQualModal(seriesId, raceIdx) {
   const sched=G.schedules[seriesId]||[];
@@ -5885,10 +6359,56 @@ function openRaceModal(seriesId, raceIdx) {
     const knownDrivers=getDriversForSeries(G,seriesId);
     const expectedField=knownDrivers.map(d=>`${d.name}${d.injuredOrPenalized?' [INJ/PEN]':''}`).join('\n');
 
+    const _preNote = buildPreRaceNote(seriesId, raceIdx);
+
+    // If player is injured, show notice and tick down
+    if (G.playerInjury && G.playerInjury.seriesId === seriesId) {
+      const stillOut = tickPlayerInjury(G);
+      saveGame();
+      if (stillOut) {
+        // Show injury modal — player races as sub
+        openModal(h('div',null,
+          h('div',{className:'modal-eyebrow'},`${s.short} — Round ${race.round}`),
+          h('div',{className:'modal-title',style:{color:'#EF4444'}},'⛑️ You Are Injured'),
+          h('div',{className:'modal-sub'},race.track),
+          h('div',{style:{background:'#1a0505',border:'1px solid #EF4444',borderRadius:'8px',padding:'14px',marginBottom:'14px',fontSize:'14px',color:'#FCA5A5',lineHeight:'1.6'}},
+            `${G.playerInjury.subName} is starting in your place today. Enter the race results as normal — when you see your name in the results paste, it will be replaced with ${G.playerInjury.subName} automatically. Any points and prize money go to the substitute.`
+          ),
+          h('div',{style:{fontSize:'14px',color:'#94A3B8',marginBottom:'14px'}},
+            `${G.playerInjury.racesRemaining} race${G.playerInjury.racesRemaining>1?'s':''} remaining on injury.`
+          ),
+          h('div',{className:'modal-actions'},
+            mkBtn('Enter Results →','btn btn-danger',()=>{
+              closeModal();
+              buildRaceModal({
+                eyebrow:`${s.short} — Round ${race.round} (Injured — Sub: ${G.playerInjury?.subName||'Sub'})`,
+                title:race.track,
+                sub:`${race.city}, ${race.state}`,
+                seriesId, raceIdx,
+                qualNote:null,
+                crewPkg:CREW_PACKAGES[0],
+                expectedField,
+                isFig8:false, isSpecial:false,
+                playerNameOverride: G.playerInjury?.subName,
+                onSubmit:(result)=>{
+                  // Points and prize go to sub, not player
+                  result._injuryRace = true;
+                  result._subName = G.playerInjury?.subName;
+                  processRaceResult(G,seriesId,raceIdx,result);
+                  saveGame(); render();
+                },
+              });
+            }),
+          ),
+        ));
+        return;
+      }
+    }
+
     buildRaceModal({
       eyebrow:`${s.short} — Round ${race.round}`,
       title:race.track,
-      sub:`${race.city}, ${race.state}`,
+      sub:_preNote?`${race.city}, ${race.state}\n📻 ${_preNote}`:`${race.city}, ${race.state}`,
       seriesId, raceIdx,
       qualNote:qual?`Qualified P${qual.position}${qual.pole?' (POLE)':''}`:null,
       crewPkg,
