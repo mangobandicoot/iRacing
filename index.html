@@ -1709,7 +1709,110 @@ const REL_DESC  = {
   acquaintance:"You've shared a track.",
 };
 
+// ─── UNPROMPTED CALLOUTS ─────────────────────────────────────────────────────
+// Random post-race comments about the player from anyone in the paddock.
+// No incident or close finish required — just paddock noise.
 
+const UNPROMPTED_CALLOUT_LINES = [
+  // Shade from strangers
+  "{name} to a paddock reporter: \"I've been watching {player} for a few races now. Jury's still out.\"",
+  "{name} on the series podcast: \"There's a lot of hype around {player}. I'll believe it when I see it on a Saturday night.\"",
+  "{name} in the garage: \"Ask me about {player} after they've run a full season here. Until then I don't have much to say.\"",
+  "Overheard near the haulers: {name} telling a crew member, \"That {player} thinks they belong here. Might be right. Might not be.\"",
+  "{name} on social: \"Lot of new faces in this paddock. Some will stick. Some won't. Time tells.\" Everyone assumed it was about {player}.",
+  "{name} to the beat reporter: \"I don't pay attention to what other drivers are doing. I race my race. But I've noticed {player}.\"",
+  "{name} at the drivers meeting: \"Some people in this field are here to learn. Some are here to race. {player}'s going to have to decide which one they are.\"",
+  "{name} postgame stream: \"Someone asked about {player}. Look, I respect the hustle. The results aren't there yet. That's all I'll say.\"",
+  // Genuine props from strangers
+  "{name} to a reporter: \"I don't know {player} personally but I've watched the tape. That's a driver. Real one.\"",
+  "{name} on the series broadcast: \"Keep an eye on {player} this season. I'm not the only one in this garage saying that.\"",
+  "{name} in the paddock: \"Whoever is wrenching on {player}'s car is doing something right. That thing has been fast.\"",
+  "A veteran in the paddock — {name} — stopped a journalist this week specifically to mention {player}. \"That kid's the real deal. Write that down.\"",
+  "{name} on social: \"Shoutout to {player} for putting on a show out there. Earned every bit of it.\"",
+  "{name} to their crew after the race: \"You see {player} out there? That's somebody. Remember that name.\"",
+  "{name} at the autograph table: \"Fan asked me who to watch. I said {player}. No hesitation.\"",
+  // Veteran observations
+  "{name} to the broadcast: \"I've been in this series a long time. I can tell when someone's going to be a problem. {player} is going to be a problem.\"",
+  "{name} in a long-form interview: \"The thing about {player} that stands out isn't the speed. It's the patience. That's hard to teach.\"",
+  "{name} postgame: \"Young drivers come through here all the time. Most of them are quick for a race or two. {player} has been quick for a while now. Different.\"",
+  "{name} to a sponsor rep at dinner: \"{player} is the name I keep hearing in the paddock. Just so you know.\"",
+  // Stirring the pot
+  "{name} on a podcast: \"I'll be honest — I expected more from {player} by now. Maybe I set the bar too high. Maybe they need to set it higher.\"",
+  "{name} in a post-race presser: \"I'm not going to compare myself to {player} because we're at different stages. But the comparison is going to come. And I'm ready for it.\"",
+  "{name} on social at midnight: \"Just watching some old race tape. {player} keeps showing up in it. Make of that what you will.\"",
+  "{name} to a journalist: \"You want a rivalry? Go ask {player}. I'm not going to manufacture one. But if they want one, I'm not hard to find.\"",
+  "{name} in the paddock, to no one in particular: \"I heard {player} has been talking. I don't listen to talk. I watch lap times.\"",
+  // Funny / backhanded
+  "{name} at the autograph line: \"A kid asked me to sign his hat and write something about {player}. I wrote 'good luck.' Meant it both ways.\"",
+  "{name} on a fan call: \"Best thing I can say about {player} is they haven't wrecked me yet. Low bar. They're clearing it.\"",
+  "{name} to the crew chief: \"You know what {player} reminds me of? Me. About ten years ago. That's either a compliment or a warning. Haven't decided.\"",
+  "{name} postgame, grinning: \"Someone told me {player} said they're coming for my wins. Good. Motivation is motivation.\"",
+  "{name} on the broadcast: \"I'll say this about {player} — they are not boring. Whatever else is true, they are not boring.\"",
+  // Championship / standings commentary
+  "{name} to a reporter: \"Look at the points. {player} is right there. That's not an accident at this point.\"",
+  "{name} in the debrief: \"If {player} keeps running like this I'm going to have to actually think about the championship picture. Haven't had to do that in a while.\"",
+  "{name} on the paddock radio, overheard: \"Where did {player} finish? ... Yeah. Yeah that's what I thought. Keep an eye on that.\"",
+  "{name} on a podcast: \"The championship conversation used to be about three or four drivers. Now I hear {player}'s name in there. The field has gotten more interesting.\"",
+];
+
+const UNPROMPTED_PROPS_LINES = [
+  "{name} singled out {player} specifically in their post-race media. Nobody asked. They just said it.",
+  "A crew member from {name}'s team was overheard telling someone: \"{player} is going to win a lot of races here. Mark it.\"",
+  "{name} reposted a fan clip of {player}'s race with a single fire emoji. Paddock noticed.",
+  "{name} to the broadcast team: \"Off the record? {player} is the most interesting driver in this field right now.\" It made it on air anyway.",
+  "{name} walked past {player}'s pit box after the race and gave a slow nod. Old school respect. People noticed.",
+];
+
+function maybeFireUnpromptedCallout(state, seriesId, result) {
+  // ~15% chance per race
+  if (Math.random() > 0.15) return;
+
+  // Need at least some drivers in the field to pull a name from
+  const fieldDrivers = (result.finishOrder||[])
+    .filter(e => !e.isPlayer && e.name && e.name.toLowerCase() !== state.driverName.toLowerCase())
+    .map(e => e.name);
+
+  // Also pull from known drivers in this series
+  const knownInSeries = (state.drivers||[])
+    .filter(d => d.source==='known' && d.currentSeriesId===seriesId && d.active)
+    .map(d => d.name)
+    .filter(n => n.toLowerCase() !== state.driverName.toLowerCase());
+
+  const pool = [...new Set([...fieldDrivers, ...knownInSeries])];
+  if (!pool.length) return;
+
+  const name = pool[rand(0, pool.length-1)];
+
+  // Weight toward shade if player is doing well, props if struggling
+  const last3 = state.raceHistory.slice(-3).filter(r=>!r.dq);
+  const recentAvg = last3.length ? last3.reduce((a,r,_,arr)=>a+(r.pos/arr.length),0) : 10;
+  const useProps = recentAvg <= 5 ? Math.random() < 0.60 : Math.random() < 0.35;
+
+  let line;
+  if (useProps && Math.random() < 0.25) {
+    // Short props line
+    line = UNPROMPTED_PROPS_LINES[rand(0, UNPROMPTED_PROPS_LINES.length-1)]
+      .replace(/{name}/g, name)
+      .replace(/{player}/g, state.driverName);
+  } else {
+    line = UNPROMPTED_CALLOUT_LINES[rand(0, UNPROMPTED_CALLOUT_LINES.length-1)]
+      .replace(/{name}/g, name)
+      .replace(/{player}/g, state.driverName);
+  }
+
+  const isPositive = useProps || line.includes('real deal') || line.includes('shoutout') || line.includes('props');
+
+  state.dramaQueue.push({
+    id: 'unprompted_'+uid(),
+    title: isPositive ? `${name} Mentions You` : `${name} Has Opinions`,
+    effect: 'none',
+    desc: line,
+    valence: isPositive ? 'good' : 'neutral',
+    _isCallout: true,
+    _calloutType: isPositive ? 'close' : 'incident',
+    _calloutDriver: name,
+  });
+}
 // ─── DRIVER CALLOUT SYSTEM ───────────────────────────────────────────────────
 // After a race, drivers you had incidents with or finished close to have a
 // chance to call you out publicly. You choose how to respond. The response
@@ -2657,10 +2760,11 @@ const _fanMult = [1,1,1.5,2,5,15,40,100][getSeries(seriesId)?.tier||1]||1;
   const closeStr=closeFinishes.length?` | 🔥 ${closeFinishes.length} close finish${closeFinishes.length>1?'es':''}`:'' ;
   addLog(state,`${s.short} R${race.round} @ ${race.track}: ${posStr}${qualStr} | +${pts}pts | ${fmtMoney(result.prize||0)} | Rep ${repGain>=0?'+':''}${repGain} | Fans ${fanGain>=0?'+':''}${fmtFans(fanGain)}${closeStr}`);
 
-  if(Math.random()<0.10){
+if(Math.random()<0.10){
     const d=_rollDrama(state);
     if(d) state.dramaQueue.push(d);
   }
+  maybeFireUnpromptedCallout(state, seriesId, result);
   maybeFireSeriesNews(state, seriesId);
   if(state.week%6===0){
     const fresh=generateOffers(state.reputation,state.fans);
