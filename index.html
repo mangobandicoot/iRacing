@@ -1102,6 +1102,38 @@ const PADDOCK_RUMORS = [
   'Unverified, but someone is claiming a driver failed a routine check this week and the team is managing it quietly.',
 ];
 
+function maybeFireRivalWin(state, seriesId, result) {
+  if (!result.finishOrder || !result.finishOrder.length) return;
+  const winner = result.finishOrder[0];
+  if (!winner || !winner.name) return;
+  if (winner.isPlayer) return;
+  const rival = (state.rivals||[]).find(function(r){
+    return r.name.toLowerCase()===winner.name.toLowerCase() &&
+      ['rival','frenemy','racing_rival'].includes(relationship(r));
+  });
+  if (!rival) return;
+  const rel = relationship(rival);
+  const lines = [
+    winner.name+' took the win today. You know what that means for the points.',
+    'Of all the people to win today, it had to be '+winner.name+'.',
+    winner.name+' in victory lane. That one\'s going to sting for a while.',
+    'The paddock is talking about '+winner.name+'\'s win. They\'re going to be insufferable.',
+    winner.name+' got the win. File that away.',
+  ];
+  const friendLines = [
+    winner.name+' won today. Good for them — you can celebrate later. Focus on your own gap.',
+    'Your '+( rel==='racing_rival'?'racing rival':'rival')+' '+winner.name+' is in victory lane. Complicated feelings.',
+  ];
+  const useLines = rel==='friend' ? friendLines : lines;
+  state.dramaQueue.push({
+    id: 'rival_win_'+uid(),
+    title: winner.name+' Wins',
+    effect: 'none',
+    desc: useLines[Math.floor(Math.random()*useLines.length)],
+    valence: rel==='friend'?'neutral':'bad',
+  });
+}
+
 function maybeFirePaddockRumor(state) {
   // ~20% chance per race
   if (Math.random() > 0.20) return;
@@ -3391,9 +3423,11 @@ if(Math.random()<0.10){
     const d=_rollDrama(state);
     if(d) state.dramaQueue.push(d);
   }
-  maybeFireUnpromptedCallout(state, seriesId, result);
+    maybeFireUnpromptedCallout(state, seriesId, result);
   maybeFireSeriesNews(state, seriesId);
   maybeFirePaddockRumor(state);
+  maybeFireRivalWin(state, seriesId, result);
+
   // Injury rolls — player and AI
   if (!result._injuryRace) {
     processPlayerInjury(state, seriesId, result);
@@ -5294,7 +5328,8 @@ function renderBusiness() {
   const activeTier = G.contracts.length
     ? Math.max(...G.contracts.map(c=>(getSeries(c.seriesId)&&getSeries(c.seriesId).tier)||1))
     : 1;
-  const mediaDayUsed = (G.offTrackDone||[]).includes('media_day_s'+G.season);
+  const lastMediaWeek = G.lastMediaDayWeek||0;
+  const mediaDayUsed = (G.week - lastMediaWeek) < 3;
   const tierKey = activeTier<=2?'tier12':activeTier===3?'tier3':activeTier===4?'tier4':'tier567';
   const mediaCfg = MEDIA_DAY[tierKey];
   f.appendChild(h('div',{className:'card',style:{marginBottom:'18px'}},
@@ -5308,13 +5343,14 @@ function renderBusiness() {
           'Full press conference. Everything you say gets clipped. Once per season.'
         ),
       ),
-      mediaDayUsed
-        ? badge('Done this season','#64748B')
+         mediaDayUsed
+          ? badge('Available in '+(3-(G.week-(G.lastMediaDayWeek||0)))+' races','#64748B')
         : mkBtn('Do Media Day','btn btn-primary',()=>{
             if(!G.offTrackDone) G.offTrackDone=[];
-            G.offTrackDone.push('media_day_s'+G.season);
+                        G.lastMediaDayWeek = G.week;
             saveGame();
             doMediaDay(activeTier);
+
           }),
     ),
   ));
