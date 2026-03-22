@@ -564,27 +564,97 @@ const SPECIAL_EVENTS = [
 
 // ─── TEAMS ───────────────────────────────────────────────────────────────────
 const TEAMS = {
-  mini_stock:       ["Pawlowski's Auto Body",'Earl\'s Speed Shop','Backwoods Motorsports','County Line Racing','Hilltop Racing'],
-  street_stock:     ['Barnyard Racing','Cousin\'s Garage','Rural Route Racing','Three Dog Racing','Riverside Motorsports'],
-  late_model_stock: ['Southern Speed Racing','Appalachian Motorsports','Piedmont Racing Co.','Blue Ridge Speed','Tri-State Racing'],
-  super_late_model: ['Carolina Asphalt Racing','Ridgeline Motorsports','Summit Racing Stable','Tri-Oval Racing','Flatout Racing'],
-  arca_menards:     ['Pinnacle Motorsports','Elevation Racing','Heritage Speed Group','National Oval Racing','Summit Motorsports'],
-  nascar_trucks:    ['Frontier Truck Racing','Wildfire Motorsports','Crossroads Racing','Thunder Racing','Apex Truck Team'],
-  nascar_xfinity:   ['Silver Arrow Racing','Criterion Motorsports','Momentum Racing Partners','Apex National','Phoenix Racing'],
-  nascar_cup:       ['Titan Motorsports','Crown Racing','Dynasty Motor Racing','Apex Cup Team','Legacy Motor Club'],
+  mini_stock: [
+    "Pawlowski's Auto Body", "Earl's Speed Shop", "Backwoods Motorsports",
+    "County Line Racing", "Hilltop Racing", "Gravel Road Racing",
+    "Pinebrook Motorsports", "Twin Pines Garage",
+  ],
+  street_stock: [
+    'Barnyard Racing', "Cousin's Garage", 'Rural Route Racing',
+    'Three Dog Racing', 'Riverside Motorsports', 'Southpaw Racing',
+    'Timber Run Racing', 'Lakeview Speed', 'Ironhide Motorsports',
+  ],
+  super_late_model: [
+    'Carolina Asphalt Racing', 'Ridgeline Motorsports', 'Summit Racing Stable',
+    'Tri-Oval Racing', 'Flatout Racing', 'Precision Motorsports',
+    'Apex Asphalt Racing', 'Benchmark Speed', 'Threshold Motorsports',
+  ],
+  late_model_stock: [
+    'Southern Speed Racing', 'Appalachian Motorsports', 'Piedmont Racing Co.',
+    'Blue Ridge Speed', 'Tri-State Racing', 'Carolina Thunder Racing',
+    'Shenandoah Motorsports', 'Smoky Mountain Speed', 'Tidewater Racing',
+    'Gulf Coast Motorsports',
+  ],
+  arca_menards: [
+    'Pinnacle Motorsports', 'Elevation Racing', 'Heritage Speed Group',
+    'National Oval Racing', 'Summit Motorsports', 'Accelerate Racing',
+    'Landmark Motorsports', 'Frontier Speed Group', 'Continental Racing',
+    'Keystone Motorsports', 'American Oval Racing', 'Crossover Motorsports',
+  ],
+  nascar_trucks: [
+    'Frontier Truck Racing', 'Wildfire Motorsports', 'Crossroads Racing',
+    'Thunder Racing', 'Apex Truck Team', 'Ironhorse Motorsports',
+    'Stampede Racing', 'Longhaul Motorsports', 'Roughrider Racing',
+    'Big Rig Motorsports', 'Outpost Racing', 'Trailblazer Speed',
+    'Stonewall Truck Racing', 'Overland Motorsports',
+  ],
+  nascar_xfinity: [
+    'Silver Arrow Racing', 'Criterion Motorsports', 'Momentum Racing Partners',
+    'Apex National', 'Phoenix Racing', 'Cardinal Motorsports',
+    'Velocity Racing Group', 'Ironside Motorsports', 'Highline National',
+    'Threshold Racing', 'Benchmark Motorsports', 'Streamline Racing',
+    'Precision National', 'Catalyst Motorsports', 'Vortex Racing',
+  ],
+  nascar_cup: [
+    'Titan Motorsports', 'Crown Racing', 'Dynasty Motor Racing',
+    'Apex Cup Team', 'Legacy Motor Club', 'Republic Racing',
+    'Ironclad Cup Racing', 'Sovereign Motorsports', 'National Speed Group',
+    'Empire Racing', 'Pinnacle Cup Team', 'Vanguard Motor Racing',
+    'Landmark Racing', 'Continental Motorsports', 'Heritage Cup Racing',
+    'Criterion Cup Team',
+  ],
 };
 
 // ─── SPONSOR DATA ────────────────────────────────────────────────────────────
 const SPONSOR_BRANDS = {
-  mini_stock:       ["Earl's Auto Parts",'Bud\'s Tire World','County Diesel','Lakeside Motors'],
-  street_stock:     ['Midwest Auto Supply','Thunder Ridge Fuel','Valley Hardware','Pinecrest Auto'],
-  late_model_stock: ['Summit Racing','Holley Performance','Lucas Oil','Driven Racing Oil'],
-  super_late_model: ['Comp Cams','Edelbrock','Weld Racing','Hooker Headers'],
-  arca_menards:     ['Menards','NAPA Auto Parts','Chevrolet Accessories','Mobil 1'],
-  nascar_trucks:    ['Camping World','DeWalt','3M','Chevrolet Accessories'],
-  nascar_xfinity:   ['Xfinity','Hellmann\'s','Cheddar\'s','Benihana'],
-  nascar_cup:       ['Monster Energy','Coca-Cola','Goodyear','Hendrick Automotive'],
-  international:    ['Pirelli','Red Bull','Shell V-Power','Bosch','Michelin','Castrol','Gulf Oil'],
+  mini_stock: [
+    "Earl's Auto Parts", "Bud's Tire World", 'County Diesel', 'Lakeside Motors',
+    'Gravel Pit Auto', 'Pinebrook Hardware', 'Twin Pines Fuel', 'Millcreek Towing',
+  ],
+  street_stock: [
+    'Midwest Auto Supply', 'Thunder Ridge Fuel', 'Valley Hardware', 'Pinecrest Auto',
+    'Ridgewood Parts', 'Cornerstone Auto', 'Backroads Fuel', 'Lakeview Motors',
+  ],
+  late_model_stock: [
+    'Summit Racing', 'Holley Performance', 'Lucas Oil', 'Driven Racing Oil',
+    'Trick Flow Specialties', 'K&N Filters', 'MSD Ignition', 'Jegs Performance',
+  ],
+  super_late_model: [
+    'Comp Cams', 'Edelbrock', 'Weld Racing', 'Hooker Headers',
+    'Wilwood Brakes', 'Strange Engineering', 'QA1 Suspension', 'Afco Racing',
+  ],
+  arca_menards: [
+    'Menards', 'NAPA Auto Parts', 'Chevrolet Accessories', 'Mobil 1',
+    'General Tire', 'Prestone', 'Quaker State', 'STP',
+  ],
+  nascar_trucks: [
+    'Camping World', 'DeWalt', '3M', 'Chevrolet Accessories',
+    'Toyota Accessories', 'Ford Performance', 'Kubota', 'Bass Pro Shops',
+  ],
+  nascar_xfinity: [
+    'Xfinity', "Hellmann's", "Cheddar's", 'Benihana',
+    'Whelen Engineering', 'Interstate Batteries', 'Hy-Vee', 'Pilot Flying J',
+  ],
+  nascar_cup: [
+    'Monster Energy', 'Coca-Cola', 'Goodyear', 'FedEx',
+    'M&Ms', 'Bass Pro Shops', 'USAA', 'Ally Financial',
+    'Busch Light', 'McDonald\'s', 'Fastenal', 'Chevrolet',
+    'Ford Motor Company', 'Toyota Racing', 'DoorDash', 'GEICO',
+  ],
+  international: [
+    'Pirelli', 'Red Bull', 'Shell V-Power', 'Bosch',
+    'Michelin', 'Castrol', 'Gulf Oil', 'Motul',
+  ],
 };
 const SPONSOR_TYPES = {
   primary:      { label:'Primary',      mult:1.0, dur:[1,2], decay:8,  gain:12 },
@@ -677,59 +747,6 @@ const DRAMA = [
 
 // ─── MEDIA DAY SYSTEM ────────────────────────────────────────────────────────
 // Tier-scaled press interactions. Low tiers = local reporter. Cup = full circus.
-const MEDIA_DAY = {
-  // Format: { question, options: [{label, type, rep, fans, sponsorHappy, log}] }
-  // type: 'bold'|'safe'|'deflect'|'humble'|'trash'
-  tier12: {
-    label: 'Local Reporter',
-    color: '#94A3B8',
-    icon: '📰',
-    questions: [
-      "Local paper caught you after the race. \"How'd tonight go for you?\"",
-      "A reporter from the county paper wants a quote for their racing column.",
-      "Someone with a voice recorder and a press pass found you near your trailer.",
-      "The track announcer wants a word for the Facebook livestream.",
-      "A high school journalism student is covering the race for their school paper. They seem nervous.",
-    ],
-  },
-  tier3: {
-    label: 'Regional Beat Writer',
-    color: '#3B82F6',
-    icon: '🎙️',
-    questions: [
-      "The regional motorsport outlet caught you in the paddock. \"What's the plan for the rest of the season?\"",
-      "A beat writer who covers your series wants your take on the championship picture.",
-      "You're doing a quick spot for a regional racing podcast. They have about 8,000 listeners.",
-      "A reporter from the state's biggest paper is doing a motorsport feature. You made the list.",
-      "The series official media guy needs a quote for the weekly newsletter.",
-    ],
-  },
-  tier4: {
-    label: 'National Outlet',
-    color: '#F59E0B',
-    icon: '📡',
-    questions: [
-      "A national motorsport outlet has you scheduled for a proper sit-down. Cameras rolling.",
-      "You're doing a feature interview for one of the bigger racing publications. Sponsors are watching this one.",
-      "Pre-race media availability. Several outlets are present. Someone is going to ask about your rivals.",
-      "National TV wants a brief comment before qualifying. Keep it tight.",
-      "Your sponsor's PR team set up a media session. It's friendly but there are microphones.",
-    ],
-  },
-  tier567: {
-    label: 'Full Press Conference',
-    color: '#EC4899',
-    icon: '🎥',
-    questions: [
-      "Full pre-race press conference. Multiple outlets, cameras, the works. Someone is going to ask about the championship.",
-      "You're in the media center. The room is full. A reporter from a major outlet leads off: \"How are you feeling about your championship chances?\"",
-      "Post-race press conference. The result was notable enough to fill the room. Someone's going to ask about your rival.",
-      "National broadcast wants you for a segment. Prime time. Your sponsor bought ad space during the same show.",
-      "The series put you in the official post-race press conference. Top finishers only. The cameras are on.",
-    ],
-  },
-};
-
 const MEDIA_RESPONSES = [
   {
     label: 'Keep it professional',
@@ -737,10 +754,19 @@ const MEDIA_RESPONSES = [
     rep: 2, fans: 50, sponsorHappy: 3,
     log: 'Gave a clean, professional answer. Nobody offended. Nobody excited.',
     lines: [
-      "\"We're focused on the work. Every race is a chance to improve and that's what we're doing.\"",
-      "\"The team has been putting in the hours. I'm just trying to execute on race day.\"",
-      "\"One race at a time. That's the only way to approach a season like this.\"",
-      "\"We're building something. I feel good about the direction we're headed.\"",
+      '"We\'re focused on the work. Every race is a chance to improve and that\'s what we\'re doing."',
+      '"The team has been putting in the hours. I\'m just trying to execute on race day."',
+      '"One race at a time. That\'s the only way to approach a season like this."',
+      '"We\'re building something. I feel good about the direction we\'re headed."',
+      '"Results speak louder than words. We\'ll let ours do the talking."',
+      '"I don\'t concern myself with what other people are doing. Eyes forward."',
+      '"Every week is a chance to get better. That\'s the mentality in our garage."',
+    ],
+    followups: [
+      { q: '"Can you be more specific about what improving looks like for you this season?"',
+        options: ['safe','humble'] },
+      { q: '"Some would say that\'s a non-answer. Fair?"',
+        options: ['deflect','bold'] },
     ],
   },
   {
@@ -749,10 +775,19 @@ const MEDIA_RESPONSES = [
     rep: 4, fans: 200, sponsorHappy: 5,
     log: 'Made a confident statement. People are paying attention.',
     lines: [
-      "\"We're here to win. Not to participate. To win. I think we've shown we can do that.\"",
-      "\"I think anyone watching the last few races can see what we're capable of. We're not done.\"",
-      "\"The championship is the goal. It's always been the goal. We haven't changed our mind about that.\"",
-      "\"I'm not interested in being a contender. I'm interested in being the champion. There's a difference.\"",
+      '"We\'re here to win. Not to participate. To win. I think we\'ve shown we can do that."',
+      '"I think anyone watching the last few races can see what we\'re capable of. We\'re not done."',
+      '"The championship is the goal. It\'s always been the goal. We haven\'t changed our mind about that."',
+      '"I\'m not interested in being a contender. I\'m interested in being the champion. There\'s a difference."',
+      '"I came here to race and I came here to win. Everything else is noise."',
+      '"Nobody in this field works harder. Nobody. You\'ll see that reflected in the results."',
+      '"We haven\'t peaked yet. That\'s the most dangerous thing about this team right now."',
+    ],
+    followups: [
+      { q: '"Strong words. What happens if the results don\'t follow?"',
+        options: ['deflect','safe'] },
+      { q: '"Does that kind of confidence ever rub people the wrong way?"',
+        options: ['trash','humble'] },
     ],
   },
   {
@@ -761,10 +796,38 @@ const MEDIA_RESPONSES = [
     rep: -1, fans: 400, sponsorHappy: -5,
     log: 'Made it personal. Fans loved it. Sponsors slightly nervous.',
     lines: [
-      "\"There are drivers in this field who've had a lot to say lately. I'd rather let the results do the talking. Mine have been pretty loud.\"",
-      "\"I've heard what some people in this paddock have been saying. I'll respond on track. That's the only response that matters.\"",
-      "\"Someone asked me about [rival]. I'll say this — I know where they finish and they know where I finish. The scoreboard is public.\"",
-      "\"There's a driver or two in this series who confuse confidence with results. Different things.\"",
+      '"There are drivers in this field who\'ve had a lot to say lately. I\'d rather let the results do the talking. Mine have been pretty loud."',
+      '"I\'ve heard what some people in this paddock have been saying. I\'ll respond on track. That\'s the only response that matters."',
+      '"There\'s a driver or two in this series who confuse confidence with results. Different things."',
+      '"Some people in this paddock need to worry less about what I\'m doing and more about what they\'re doing."',
+      '"I\'m not going to name names. But if someone feels like that was about them, maybe they should ask themselves why."',
+      '"The scoreboard doesn\'t lie. People can say whatever they want. I\'ll keep pointing at the scoreboard."',
+    ],
+    followups: [
+      { q: '"Are you talking about anyone specific?"',
+        options: ['trash','deflect'] },
+      { q: '"That sounds like a direct challenge. Is it?"',
+        options: ['bold','trash'] },
+    ],
+  },
+  {
+    label: 'Go nuclear',
+    type: 'nuclear',
+    rep: -3, fans: 600, sponsorHappy: -12,
+    log: 'Said exactly what you think. Sponsors are calling. Fans are screaming.',
+    lines: [
+      '"Honestly? Some of these guys can kiss my ass. I\'m done being polite about it."',
+      '"You want honesty? Half this field wouldn\'t be here if their dads didn\'t own the teams. I earned my seat."',
+      '"I\'ve been diplomatic long enough. That move last week was dirty and everyone in the paddock knows it."',
+      '"Off the record? That guy is a hack. On the record? That guy is a hack."',
+      '"I don\'t care who I piss off. I came here to race, not to make friends."',
+      '"The politics in this series are a joke. The stewards are a joke. I\'ll say it on camera."',
+    ],
+    followups: [
+      { q: '"Do you want to walk any of that back?"',
+        options: ['deflect','trash'] },
+      { q: '"You realize your sponsor is watching this, right?"',
+        options: ['safe','deflect'] },
     ],
   },
   {
@@ -773,10 +836,18 @@ const MEDIA_RESPONSES = [
     rep: 3, fans: 100, sponsorHappy: 8,
     log: 'Came across well. Sponsors particularly happy with the tone.',
     lines: [
-      "\"I've got a lot to learn still. Every week teaches me something. I'm just grateful for the opportunity.\"",
-      "\"The team deserves the credit. I show up and drive. They make it possible.\"",
-      "\"I don't take any of this for granted. There are a lot of talented people in this paddock. I know that.\"",
-      "\"We're not where we want to be yet. We know that. We're working on it every day.\"",
+      '"I\'ve got a lot to learn still. Every week teaches me something. I\'m just grateful for the opportunity."',
+      '"The team deserves the credit. I show up and drive. They make it possible."',
+      '"I don\'t take any of this for granted. There are a lot of talented people in this paddock. I know that."',
+      '"We\'re not where we want to be yet. We know that. We\'re working on it every day."',
+      '"Racing gives back what you put in. I\'m just trying to put in enough to deserve it."',
+      '"There are drivers in this series who\'ve been doing this longer than me. I\'m still learning from them."',
+    ],
+    followups: [
+      { q: '"Is there a point where humility becomes underselling yourself?"',
+        options: ['bold','safe'] },
+      { q: '"Fans want fire. Does that frustrate you?"',
+        options: ['deflect','bold'] },
     ],
   },
   {
@@ -785,21 +856,172 @@ const MEDIA_RESPONSES = [
     rep: 1, fans: 150, sponsorHappy: 2,
     log: 'Kept it light. No controversy. Some charm points.',
     lines: [
-      "\"Ask me again after the checkered flag. I'll have a better answer then.\"",
-      "\"I'll tell you what — let's revisit that question at the end of the season. I think the answer will be clearer.\"",
-      "\"My crew chief told me not to say anything interesting in press conferences. So I won't say anything interesting.\"",
-      "\"You know what they say — let the car do the talking. Mine's been pretty chatty lately.\"",
+      '"Ask me again after the checkered flag. I\'ll have a better answer then."',
+      '"I\'ll tell you what — let\'s revisit that question at the end of the season. I think the answer will be clearer."',
+      '"My crew chief told me not to say anything interesting in press conferences. So I won\'t say anything interesting."',
+      '"You know what they say — let the car do the talking. Mine\'s been pretty chatty lately."',
+      '"That\'s a great question. I\'m going to pretend I didn\'t hear it and talk about the car instead."',
+      '"I\'d answer that but my lawyer told me not to. I\'m kidding. Mostly."',
+      '"Look, I just drive the thing. Ask someone smarter than me."',
+    ],
+    followups: [
+      { q: '"That\'s a dodge and you know it. Real answer?"',
+        options: ['bold','safe'] },
+      { q: '"You always this hard to pin down?"',
+        options: ['humble','deflect'] },
+    ],
+  },
+  {
+    label: 'Praise the team',
+    type: 'team',
+    rep: 2, fans: 80, sponsorHappy: 10,
+    log: 'Redirected to the team. Crew chief is going to love this.',
+    lines: [
+      '"I want to talk about the guys in the garage before I talk about anything else. They\'re the reason we\'re here."',
+      '"Whatever we accomplish this season belongs to the whole team. I\'m one piece of it."',
+      '"The crew chief had the car dialed this week. I just tried not to mess it up."',
+      '"You should be interviewing my engineer. They deserve more credit than I do right now."',
+      '"This team has been with me through the bad stretches. Good results feel better because of that."',
+    ],
+    followups: [
+      { q: '"But you\'re the one driving it. Give yourself some credit."',
+        options: ['humble','bold'] },
+      { q: '"Is this a team that can win a championship?"',
+        options: ['bold','safe'] },
+    ],
+  },
+  {
+    label: 'Talk about the fans',
+    type: 'fans',
+    rep: 3, fans: 300, sponsorHappy: 6,
+    log: 'Fan-first answer. Social media is going to like this.',
+    lines: [
+      '"The people who show up every week, travel to the tracks, wear the shirts — they\'re why I do this."',
+      '"Had a kid come up to me before the race and tell me I\'m their favorite driver. That\'s the whole thing right there."',
+      '"The fans in this series are different. They actually know racing. They appreciate the craft."',
+      '"I race for the people in the grandstands. Full stop. Everything else is secondary."',
+      '"Someone drove four hours to watch us race last week. Four hours. I owe them everything I have."',
+    ],
+    followups: [
+      { q: '"What do you say to fans who are frustrated with your recent results?"',
+        options: ['humble','bold'] },
+      { q: '"Does fan pressure ever get to you?"',
+        options: ['safe','deflect'] },
     ],
   },
 ];
+
+// Follow-up response pools by type
+const MEDIA_FOLLOWUP_RESPONSES = {
+  safe: [
+    '"We focus on what we can control. That\'s all any of us can do."',
+    '"The work will show up in the results. I believe that."',
+    '"I\'ll let the season answer that question."',
+  ],
+  bold: [
+    '"Watch what happens. That\'s my answer."',
+    '"I don\'t back down from what I said. Not even a little."',
+    '"The only thing I\'m walking back is the part where I was being too diplomatic."',
+  ],
+  humble: [
+    '"I\'m not trying to be modest. I genuinely have a lot of room to grow."',
+    '"Every driver in this field is good. I\'m one of them. Nothing more."',
+    '"I\'m just grateful to be here. That\'s not a line."',
+  ],
+  deflect: [
+    '"I think you\'re reading too much into it. But that\'s your job."',
+    '"Next question? I\'m kidding. Mostly."',
+    '"If I answer that one, you\'re going to have a follow-up. I can see it already."',
+  ],
+  trash: [
+    '"Yeah. It is a direct challenge. Write that down."',
+    '"If someone in this paddock feels called out, that\'s on them, not me."',
+    '"I meant every word. I\'ll mean the next words too."',
+],
+};
 
 function doMediaDay(tier) {
   const tierKey = tier<=2?'tier12':tier===3?'tier3':tier===4?'tier4':'tier567';
   const config = MEDIA_DAY[tierKey];
   const question = config.questions[rand(0,config.questions.length-1)];
-
-  // Scale effects by tier
   const tierMult = [1,1,1.5,2,3,4,5][Math.min(tier,6)];
+
+  // Filter responses by tier — nuclear only at tier 4+
+  const availableResponses = MEDIA_RESPONSES.filter(function(r){
+    return r.type !== 'nuclear' || tier >= 4;
+  });
+
+  function showFollowUp(resp, quote, scaledRep, scaledFans) {
+    if (!resp.followups || !resp.followups.length || tier < 3) {
+      // No follow-up — show result directly
+      showMediaResult(resp, quote, scaledRep, scaledFans);
+      return;
+    }
+    const fu = resp.followups[rand(0, resp.followups.length-1)];
+    const fuOptions = fu.options.map(function(type){
+      return MEDIA_RESPONSES.find(function(r){return r.type===type;});
+    }).filter(Boolean);
+
+    openModal(h('div',null,
+      h('div',{className:'modal-eyebrow'},config.icon+' '+config.label+' — Follow-up'),
+      h('div',{style:{
+        background:'#060A10',border:'1px solid #1E2433',borderRadius:'8px',
+        padding:'14px',marginBottom:'16px',fontSize:'14px',color:'#CBD5E1',
+        lineHeight:'1.6',borderLeft:'3px solid '+config.color,
+      }},fu.q),
+      h('div',{style:{fontSize:'13px',color:'#94A3B8',marginBottom:'12px'}},'How do you respond?'),
+      h('div',{style:{display:'flex',flexDirection:'column',gap:'8px'}},
+        ...fuOptions.map(function(fuResp){
+          const fuScaledRep  = Math.round(fuResp.rep  * tierMult * 0.5);
+          const fuScaledFans = Math.round(fuResp.fans * tierMult * 0.5);
+          return h('button',{
+            className:'btn btn-secondary',
+            style:{textAlign:'left',padding:'10px 14px'},
+            onClick:function(){
+              G.reputation = Math.max(0, G.reputation + fuScaledRep);
+              G.fans       = Math.max(0, G.fans + fuScaledFans);
+              G.sponsors   = G.sponsors.map(function(sp){return Object.assign({},sp,{happiness:clamp(sp.happiness+fuResp.sponsorHappy,0,100)});});
+              const fuQuote = MEDIA_FOLLOWUP_RESPONSES[fuResp.type]
+                ? MEDIA_FOLLOWUP_RESPONSES[fuResp.type][rand(0,MEDIA_FOLLOWUP_RESPONSES[fuResp.type].length-1)]
+                : fuResp.lines[rand(0,fuResp.lines.length-1)];
+              addLog(G,'🎙️ Follow-up ('+config.label+'): '+fuResp.label+'.');
+              showMediaResult(resp, quote+' / '+fuQuote, scaledRep+fuScaledRep, scaledFans+fuScaledFans);
+            },
+          },
+            h('div',{style:{fontWeight:700,fontSize:'14px'}},fuResp.label),
+            h('div',{style:{fontSize:'12px',color:'#94A3B8',marginTop:'2px'}},
+              [fuScaledRep!==0?'Rep '+(fuScaledRep>0?'+':'')+fuScaledRep:null,
+               fuScaledFans!==0?'+'+fmtFans(fuScaledFans)+' fans':null,
+              ].filter(Boolean).join(' · ')
+            ),
+          );
+        }),
+        mkBtn('No further comment','btn btn-ghost btn-sm',function(){
+          showMediaResult(resp, quote, scaledRep, scaledFans);
+        }),
+      ),
+    ));
+  }
+
+  function showMediaResult(resp, quote, totalRep, totalFans) {
+    G.lastMediaQuote = { quote:quote, type:resp.type, tier:tier, week:G.week, label:config.label };
+    saveGame();
+    openModal(h('div',null,
+      h('div',{className:'modal-eyebrow'},config.label),
+      h('div',{className:'modal-title'},'You said:'),
+      h('div',{style:{
+        background:'#060A10',borderRadius:'8px',padding:'14px',
+        marginBottom:'16px',fontSize:'15px',color:'#F1F5F9',
+        lineHeight:'1.7',fontStyle:'italic',borderLeft:'3px solid '+config.color,
+      }},quote),
+      h('div',{style:{display:'flex',gap:'16px',marginBottom:'16px'}},
+        totalRep!==0?h('div',{style:{fontSize:'14px',fontWeight:700,color:totalRep>0?'#10B981':'#EF4444'}},'Rep '+(totalRep>0?'+':'')+totalRep):null,
+        totalFans!==0?h('div',{style:{fontSize:'14px',fontWeight:700,color:'#EC4899'}},'+'+fmtFans(totalFans)+' fans'):null,
+        resp.sponsorHappy!==0?h('div',{style:{fontSize:'14px',fontWeight:700,color:resp.sponsorHappy>0?'#10B981':'#EF4444'}},'Sponsors '+(resp.sponsorHappy>0?'+':'')+resp.sponsorHappy+'%'):null,
+      ),
+      h('div',{className:'modal-actions'},mkBtn('Done','btn btn-primary',function(){render();closeModal();})),
+    ));
+  }
 
   openModal(h('div',null,
     h('div',{className:'modal-eyebrow'},config.icon+' '+config.label),
@@ -807,49 +1029,32 @@ function doMediaDay(tier) {
     h('div',{style:{
       background:'#060A10',border:'1px solid #1E2433',borderRadius:'8px',
       padding:'14px',marginBottom:'16px',fontSize:'14px',color:'#CBD5E1',
-      lineHeight:'1.6',borderLeft:`3px solid ${config.color}`,
+      lineHeight:'1.6',borderLeft:'3px solid '+config.color,
     }},question),
     h('div',{style:{fontSize:'13px',color:'#94A3B8',marginBottom:'12px'}},'How do you handle it?'),
     h('div',{style:{display:'flex',flexDirection:'column',gap:'8px'}},
-      ...MEDIA_RESPONSES.map(resp=>{
+      ...availableResponses.map(function(resp){
         const scaledRep  = Math.round(resp.rep  * tierMult);
         const scaledFans = Math.round(resp.fans * tierMult);
         return h('button',{
           className:'btn btn-secondary',
           style:{textAlign:'left',padding:'10px 14px'},
-          onClick:()=>{
+          onClick:function(){
             G.reputation = Math.max(0, G.reputation + scaledRep);
             G.fans       = Math.max(0, G.fans + scaledFans);
-            G.sponsors   = G.sponsors.map(sp=>({...sp,happiness:clamp(sp.happiness+resp.sponsorHappy,0,100)}));
+            G.sponsors   = G.sponsors.map(function(sp){return Object.assign({},sp,{happiness:clamp(sp.happiness+resp.sponsorHappy,0,100)});});
             const quote  = resp.lines[rand(0,resp.lines.length-1)];
-            const repStr = scaledRep!==0?` Rep ${scaledRep>0?'+':''}${scaledRep}`:'';
-            const fanStr = scaledFans!==0?` Fans ${scaledFans>0?'+':''}${fmtFans(scaledFans)}`:'';
-            addLog(G,`🎙️ Media day (${config.label}): ${resp.label}.${repStr}${fanStr}`);
-            // Store last media quote for dashboard display
-            G.lastMediaQuote = { quote, type:resp.type, tier, week:G.week, label:config.label };
-            saveGame();
-            openModal(h('div',null,
-              h('div',{className:'modal-eyebrow'},config.label),
-              h('div',{className:'modal-title'},'You said:'),
-              h('div',{style:{
-                background:'#060A10',borderRadius:'8px',padding:'14px',
-                marginBottom:'16px',fontSize:'15px',color:'#F1F5F9',
-                lineHeight:'1.7',fontStyle:'italic',borderLeft:`3px solid ${config.color}`,
-              }},`"${quote}"`),
-              h('div',{style:{display:'flex',gap:'16px',marginBottom:'16px'}},
-                scaledRep!==0?h('div',{style:{fontSize:'14px',fontWeight:700,color:scaledRep>0?'#10B981':'#EF4444'}},`Rep ${scaledRep>0?'+':''}${scaledRep}`):null,
-                scaledFans!==0?h('div',{style:{fontSize:'14px',fontWeight:700,color:'#EC4899'}},`+${fmtFans(scaledFans)} fans`):null,
-                resp.sponsorHappy!==0?h('div',{style:{fontSize:'14px',fontWeight:700,color:resp.sponsorHappy>0?'#10B981':'#EF4444'}},`Sponsors ${resp.sponsorHappy>0?'+':''}${resp.sponsorHappy}%`):null,
-              ),
-              h('div',{className:'modal-actions'},mkBtn('Done','btn btn-primary',()=>{render();closeModal();})),
-            ));
+            const repStr = scaledRep!==0?' Rep '+(scaledRep>0?'+':'')+scaledRep:'';
+            const fanStr = scaledFans!==0?' Fans '+(scaledFans>0?'+':'')+fmtFans(scaledFans):'';
+            addLog(G,'🎙️ Media day ('+config.label+'): '+resp.label+'.'+repStr+fanStr);
+            showFollowUp(resp, quote, scaledRep, scaledFans);
           },
         },
           h('div',{style:{fontWeight:700,fontSize:'14px'}},resp.label),
           h('div',{style:{fontSize:'12px',color:'#94A3B8',marginTop:'2px'}},
-            [scaledRep!==0?`Rep ${scaledRep>0?'+':''}${scaledRep}`:null,
-             scaledFans!==0?`+${fmtFans(scaledFans)} fans`:null,
-             resp.sponsorHappy!==0?`Sponsors ${resp.sponsorHappy>0?'+':''}${resp.sponsorHappy}%`:null,
+            [scaledRep!==0?'Rep '+(scaledRep>0?'+':'')+scaledRep:null,
+             scaledFans!==0?'+'+fmtFans(scaledFans)+' fans':null,
+             resp.sponsorHappy!==0?'Sponsors '+(resp.sponsorHappy>0?'+':'')+resp.sponsorHappy+'%':null,
             ].filter(Boolean).join(' · ')
           ),
         );
@@ -857,6 +1062,58 @@ function doMediaDay(tier) {
       mkBtn('No comment','btn btn-ghost btn-sm',closeModal),
     ),
   ));
+}
+// ─── PADDOCK RUMORS ──────────────────────────────────────────────────────────
+const PADDOCK_RUMORS = [
+  // Team/contract rumors
+  'Word in the paddock is one of the top teams is unhappy with their driver situation. Expect movement before the offseason.',
+  'A source close to a Cup team says they\'ve been quietly scouting lower-series talent. Names haven\'t surfaced yet.',
+  'Rumor is a well-funded team is about to announce a big sponsorship deal that could change their driver lineup.',
+  'Heard from a reliable source that at least one team owner is considering selling their operation after this season.',
+  'Talk in the garage area is that a prominent driver is unhappy with their current contract and may not re-sign.',
+  'A crew chief reportedly interviewed with a rival team last week. Nothing confirmed but the timing is interesting.',
+  'Word is a manufacturer is increasing their involvement in the series next season. More factory support means more competition for seats.',
+  // Driver performance rumors
+  'Someone in the paddock is saying a well-known driver has been struggling in testing but it hasn\'t shown up in race results yet.',
+  'Rumor is one of the championship contenders has had ongoing mechanical issues they\'ve been managing quietly all season.',
+  'A mechanic who used to work for a top team was overheard saying their car setup philosophy has fundamentally changed. Could be good or bad.',
+  'Word is a driver who\'s been running up front lately has been having issues at home. Could affect their focus.',
+  'Heard that a young driver who\'s been on everyone\'s radar recently turned down a significant offer. Holding out for something bigger.',
+  // Series/politics rumors  
+  'A series official was reportedly seen having a long conversation with a team owner after the last race. Nobody knows what was said.',
+  'Rumor is the series is considering a rule change that would significantly affect car setup. Teams are already lobbying.',
+  'Word is the stewards received a formal protest after last week\'s race that never made the official reports.',
+  'A sponsor who\'s been in the series for years is reportedly reconsidering their involvement after next season.',
+  'Heard the series is in talks with a new venue that would replace one of the traditional stops on the schedule.',
+  // Injury/personal rumors
+  'Word is a driver who\'s been listed as day-to-day with an injury is in worse shape than the team is letting on.',
+  'Rumor is a prominent driver recently went through something personal that their team has been covering for.',
+  'A source says a driver who had a big crash earlier this season still isn\'t fully right but is racing through it.',
+  // Fun/light rumors
+  'Overheard at the hauler: two crew members from rival teams apparently got into it at a bar last night. Details are fuzzy.',
+  'Word is a driver bet their crew chief they could qualify top five this weekend. The stakes were reportedly significant.',
+  'Rumor is one of the more colorful personalities in the paddock got thrown out of a team hospitality suite last night.',
+  'A source says a well-known driver showed up to the track in a rental car this week. Their hauler had a breakdown. Not exactly the look.',
+  'Heard that a sponsor rep got lost in the infield for two hours during last week\'s race. The team is not amused.',
+  // True or false framing
+  'Take this with a grain of salt, but word is a major team announcement is coming before the end of the season.',
+  'Not confirmed, but a paddock source is saying there\'s been a falling out between a driver and their team principal.',
+  'This one might be nothing, but two drivers who have been close for years reportedly aren\'t speaking right now.',
+  'Unverified, but someone is claiming a driver failed a routine check this week and the team is managing it quietly.',
+];
+
+function maybeFirePaddockRumor(state) {
+  // ~20% chance per race
+  if (Math.random() > 0.20) return;
+  var rumor = PADDOCK_RUMORS[Math.floor(Math.random()*PADDOCK_RUMORS.length)];
+  state.dramaQueue.push({
+    id: 'rumor_'+uid(),
+    title: '🗣️ Paddock Rumor',
+    effect: 'none',
+    desc: rumor + ' Could be nothing. Could be everything.',
+    valence: 'neutral',
+    _isRumor: true,
+  });
 }  
 // ─── SOCIAL MEDIA POSTS ───────────────────────────────────────────────────────
 const SOCIAL_POSTS = {
@@ -1143,6 +1400,67 @@ function doSocialPost(type) {
   showSummaryToast(`📱 Posted: "${post}"`, type==='positive'?'#10B981':type==='negative'?'#EF4444':'#94A3B8', 'Social');
 }
 
+// ─── INTERNATIONAL NAME POOLS ────────────────────────────────────────────────
+const INTL_NAMES = {
+  Europe: {
+    first: ['Luca','Marco','Matteo','Lorenzo','Alessandro','Francesco','Pierre','Antoine',
+            'Julien','Romain','Sebastien','Nicolas','Maxime','Theo','Max','Lars',
+            'Nico','Felix','Kevin','Marcel','Timo','Mick','Carlos','Fernando',
+            'Alvaro','Sergio','Dani','Javier','Pablo','Ruben','Lewis','George',
+            'Lando','Oliver','Jack','Will','Tom','Harry'],
+    last:  ['Rossi','Ferrari','Lombardi','Ricci','Conti','Mancini','Greco','Esposito',
+            'Leclerc','Gasly','Ocon','Grosjean','Vergne','Lapierre','Vandoorne',
+            'Verstappen','Magnussen','Eriksson','Lindqvist','Ronning','Haugen',
+            'Sainz','Alonso','Molina','Fuentes','Herrero','Martinez','Castillo',
+            'Hamilton','Russell','Norris','Rowland','Harvey','Chilton','Tincknell'],
+  },
+  Asia: {
+    first: ['Yuki','Sho','Ryo','Kenji','Takumi','Hiroshi','Daiki','Naoki',
+            'Wei','Jian','Hao','Ming','Lei','Tao','Peng','Cheng',
+            'Ji-Woo','Min-Jun','Tae-Yang','Hyun','Seung','Jae','Dong','Young',
+            'Arjun','Kush','Jehan','Ruhaan','Akhil','Raj','Vicky','Aditya'],
+    last:  ['Tsunoda','Yamamoto','Kobayashi','Nakajima','Sato','Matsushita','Otsu','Makino',
+            'Zhou','Wang','Li','Zhang','Chen','Liu','Yang','Wu',
+            'Kim','Park','Lee','Choi','Jung','Kang','Yoon','Lim',
+            'Maini','Mehta','Daruvala','Narain','Karthikeyan','Singhania'],
+  },
+  Africa: {
+    first: ['Jann','Sacha','Kelvin','Nathanael','Liam','Jordan','Caleb','Ethan',
+            'Kwame','Kofi','Yaw','Nana','Kojo','Fiifi',
+            'Tariq','Bilal','Youssef','Omar','Karim','Hassan','Nabil','Rachid'],
+    last:  ['Monger','Fenestraz','Beckmann','Soulet','Thiim',
+            'Asante','Mensah','Owusu','Boateng','Amoah','Osei','Darko','Agyei',
+            'Benali','Mansouri','Khalidi','Bensalem','Azizi','Ouali','Hajji','Berrada'],
+  },
+  'South America': {
+    first: ['Gabriel','Felipe','Pietro','Enzo','Caio','Thiago','Matheus','Lucas',
+            'Sebastian','Nicolas','Facundo','Matias','Agustin','Ignacio','Santiago','Tomas',
+            'Juan','Julio','Carlos','Eduardo','Rodrigo','Andres','Diego','Miguel'],
+    last:  ['Bortoleto','Drugovich','Fittipaldi','Piquet','Senna','Barrichello','Nasr','Fraga',
+            'Colapinto','Dapero','Nannini','Vesti','Hauger','Marti','Bearman',
+            'Montoya','Maldonado','Urrutia','Rojas','Fuenmayor','Guerrieri','Girolami'],
+  },
+  'Central America': {
+    first: ['Esteban','Ricardo','Sergio','Roberto','Mario','Memo','Adrian','Raul',
+            'Josue','Alejandro','Sebastian','Andres','Felipe','Arturo','Hector','Ernesto'],
+    last:  ['Guerrieri','Soto','Jimenez','Herrera','Mendez','Vasquez','Castillo','Cruz',
+            'Rodriguez','Morales','Garcia','Lopez','Martinez','Gonzalez','Perez','Ramirez'],
+  },
+  Australia: {
+    first: ['Oscar','Jack','Will','Scott','Mark','Daniel','James','Ryan',
+            'Liam','Nathan','Dylan','Jake','Broc','Cameron','Matthew','Todd'],
+    last:  ['Piastri','Doohan','Power','McLaughlin','Webber','Ricciardo','Courtney','Briscoe',
+            'Percat','Whincup','Mostert','Reynolds','Waters','Heimgartner','Slade'],
+  },
+};
+
+function generateIntlName(region) {
+  var pool = INTL_NAMES[region];
+  if (!pool) return null;
+  var first = pool.first[Math.floor(Math.random()*pool.first.length)];
+  var last  = pool.last[Math.floor(Math.random()*pool.last.length)];
+  return first + ' ' + last;
+}  
 // ─── AI DRIVER NAME POOL ─────────────────────────────────────────────────────
 const AI_FIRST = [
   'Kyle','Jimmy','Dale','Bobby','Ronnie','Chase','Tyler','Rick','Austin','Hank',
@@ -1189,6 +1507,12 @@ function retireDriverAsJrCandidate(driver) {
 }
 
 function generateAIName() {
+  var intlRegions = ['Europe','Asia','Africa','South America','Central America','Australia'];
+  if (Math.random() < 0.15) {
+    var region = intlRegions[Math.floor(Math.random()*intlRegions.length)];
+    var intlName = generateIntlName(region);
+    if (intlName) return intlName;
+  }
   const isFemale = Math.random() < 0.10;
   const firstPool = isFemale ? AI_FIRST_FEMALE : AI_FIRST;
   const first = firstPool[rand(0, firstPool.length - 1)];
@@ -3067,8 +3391,9 @@ if(Math.random()<0.10){
     const d=_rollDrama(state);
     if(d) state.dramaQueue.push(d);
   }
- maybeFireUnpromptedCallout(state, seriesId, result);
+  maybeFireUnpromptedCallout(state, seriesId, result);
   maybeFireSeriesNews(state, seriesId);
+  maybeFirePaddockRumor(state);
   // Injury rolls — player and AI
   if (!result._injuryRace) {
     processPlayerInjury(state, seriesId, result);
@@ -3309,7 +3634,6 @@ const _sFanMult = [1,1,2,4,12,40,100,250][s.tier||1]||1;
       retireDriverAsJrCandidate(d);
     }
   });
-  return { promotions, demotions };
 
   // Team reshuffles — some drivers change teams
   state.drivers.forEach(d=>{
@@ -3322,6 +3646,35 @@ const _sFanMult = [1,1,2,4,12,40,100,250][s.tier||1]||1;
 
   // Reset seasonal stats
   state.drivers.forEach(d=>{ d.seasonPoints=0; d.seasonWins=0; d.injuredOrPenalized=false; d.substituteFor=null; });
+// Evolve AI-to-AI rivalries each season
+  state.drivers.forEach(function(d){
+    if (!d.active) return;
+    if ((d.aiRivals||[]).length > 0 && Math.random() < 0.15) {
+      var rivalName = d.aiRivals[Math.floor(Math.random()*d.aiRivals.length)];
+      var rival = (state.drivers||[]).find(function(r){return r.name===rivalName;});
+      if (rival && !(rival.aiRivals||[]).includes(d.name)) {
+        rival.aiRivals = rival.aiRivals||[];
+        rival.aiRivals.push(d.name);
+      }
+    }
+    if ((d.aiFriends||[]).length < 3 && Math.random() < 0.08) {
+      var colleagues = (state.drivers||[]).filter(function(c){
+        return c !== d && c.active &&
+          c.currentSeriesId === d.currentSeriesId &&
+          !(d.aiFriends||[]).includes(c.name) &&
+          !(d.aiRivals||[]).includes(c.name);
+      });
+      if (colleagues.length) {
+        var newFriend = colleagues[Math.floor(Math.random()*colleagues.length)];
+        d.aiFriends = d.aiFriends||[];
+        d.aiFriends.push(newFriend.name);
+        newFriend.aiFriends = newFriend.aiFriends||[];
+        if (!newFriend.aiFriends.includes(d.name)) newFriend.aiFriends.push(d.name);
+      }
+    }
+  });
+
+  return { promotions, demotions };
 }
 
 // ─── SEASON GOALS ─────────────────────────────────────────────────────────────
@@ -5893,12 +6246,77 @@ function doSignContract(offer) {
 // Keep unfilled slots as null placeholders so auto-fill can detect them
     const filledCount = assigned.length;
     const totalSlots = tmCount;
-    offer.teammates = [
-      ...assigned.map(d=>({name:d.name,seriesId:offer.seriesId})),
-      ...new Array(totalSlots - filledCount).fill(null),
-    ];    assigned.forEach(d=>{
-      if(!(G.teammates||[]).find(t=>t.name===d.name))
+   offer.teammates = assigned.map(function(d){return {name:d.name,seriesId:offer.seriesId};}).concat(new Array(totalSlots - filledCount).fill(null));
+  assigned.forEach(function(d){
+      if(!(G.teammates||[]).find(function(t){return t.name===d.name;}))
         G.teammates.push({name:d.name,seriesId:offer.seriesId});
+    });
+
+    // Fire paddock reactions from drivers who have history with your new teammates
+    assigned.forEach(function(tm){
+      if (!tm || !tm.name) return;
+      var tmRivals  = tm.aiRivals||[];
+      var tmFriends = tm.aiFriends||[];
+      var allDrivers = G.drivers||[];
+
+      tmRivals.forEach(function(rivalName){
+        var rival = allDrivers.find(function(d){return d.name===rivalName&&d.source==='known';});
+        if (!rival || Math.random()>0.6) return;
+        var lines = [
+          rival.name+' on the paddock grapevine: "So '+tm.name+' and '+G.driverName+' are teammates now. Interesting choice. We\'ll see how that garage gets along."',
+          'Word is '+rival.name+' had some things to say about '+G.driverName+' signing with '+offer.team+'. Specifically about '+tm.name+' being on that roster.',
+          rival.name+' to a reporter: "I\'ve raced '+tm.name+' for years. Now they\'re in the same program as '+G.driverName+'. I\'ll just say I know both of them well. Very well."',
+          rival.name+' wasn\'t subtle about it: "That '+offer.team+' lineup is going to be must-watch. For all the right and wrong reasons."',
+          'Overheard in the paddock — '+rival.name+' to their crew: "Did you see who '+G.driverName+' is teamed up with? '+tm.name+'. Yeah. This should be interesting."',
+        ];
+        G.dramaQueue.push({
+          id:'pairing_reaction_'+uid(),
+          title:rival.name+' Reacts to Your Signing',
+          effect:'none',
+          desc:lines[Math.floor(Math.random()*lines.length)],
+          valence:'neutral',
+          _isCallout:true,
+          _calloutDriver:rival.name,
+        });
+      });
+
+      tmFriends.forEach(function(friendName){
+        var friend = allDrivers.find(function(d){return d.name===friendName&&d.source==='known';});
+        if (!friend || Math.random()>0.5) return;
+        var lines = [
+          friend.name+' on social: "Congrats to '+tm.name+' on the '+offer.team+' deal. And welcome to '+G.driverName+' — that\'s a good garage right there."',
+          friend.name+' to the paddock press: "Glad to see '+tm.name+' and '+G.driverName+' together. Those two are going to push each other."',
+          'Word from '+friend.name+': "I\'ve raced with '+tm.name+' a long time. '+G.driverName+' is lucky to have them. And vice versa."',
+          friend.name+' posted a fire emoji reacting to the '+offer.team+' lineup announcement. Paddock took notice.',
+        ];
+        G.dramaQueue.push({
+          id:'pairing_support_'+uid(),
+          title:friend.name+' Weighs In',
+          effect:'none',
+          desc:lines[Math.floor(Math.random()*lines.length)],
+          valence:'good',
+          _isCallout:true,
+          _calloutDriver:friend.name,
+        });
+      });
+
+      if ((tm.aiRivals||[]).includes(G.driverName)) {
+        G.dramaQueue.push({
+          id:'tm_tension_'+uid(),
+          title:'Uneasy Partnership',
+          effect:'none',
+          desc:'Word in the paddock is '+tm.name+' wasn\'t exactly thrilled about sharing a garage with you. The team made the call. Should be an interesting season.',
+          valence:'neutral',
+        });
+      } else if ((tm.aiFriends||[]).includes(G.driverName)) {
+        G.dramaQueue.push({
+          id:'tm_warmth_'+uid(),
+          title:tm.name+' Requested the Pairing',
+          effect:'none',
+          desc:'Sources say '+tm.name+' specifically asked about running alongside you this season. They\'ve been watching your career. That means something in this paddock.',
+          valence:'good',
+        });
+      }
     });
   }
   // Generate sponsor offers
