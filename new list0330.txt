@@ -51,3 +51,34 @@ Companion Simulator Only
 Driver Absences & Substitutes
 	•	Replace injury system with “can’t race” system (work, prior commitment, etc.).
 	•	Allow player to drive with sub or skip; AI updates standings automatically.
+
+Event
+Track / Location
+Typical Field Size
+Snowball Derby
+Five Flags Speedway (FL)
+45–55
+Oxford 250
+Oxford Plains Speedway (ME)
+40–42
+Winchester 400
+Winchester Speedway (IN)
+20–30+
+All American 400
+Nashville Fairgrounds Speedway (TN)
+25–35+
+World Series of Asphalt
+New Smyrna Speedway (FL)
+30–40+
+ValleyStar Credit Union 300
+Martinsville Speedway (VA)
+36–40
+Redbud 400
+Anderson Speedway (IN)
+20–25
+Slinger Nationals
+Slinger Speedway (WI)
+30+
+IWK 250
+Riverside International Speedway (CAN)
+
