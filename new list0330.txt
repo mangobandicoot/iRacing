@@ -1,0 +1,53 @@
+Driver Origins & Roster
+	•	Ensure home-state/fan boost works correctly (e.g., Massachusetts driver winning in nearby states).
+	•	Include mention of generic family relationships without specifying father/son ties.
+
+Driver Relationships
+	•	Initialize existing AI rivalries and friendships at save start.
+	•	Rivalries influence race behavior and interviews.
+	•	Include occasional humorous or sarcastic driver callouts.
+
+Fan System & Sponsors
+	•	Fans grow based on results, championships, personality, and popularity.
+	•	Top-level drivers cannot have unrealistically low fan counts.
+	•	Sponsors praise, warn, or cancel deals based on performance.
+	•	Sponsor tiers and prestige levels integrated.
+
+Team Management
+	•	Enable team ownership mid-career.
+	•	Hire/fire drivers, manage budgets, expand multiple cars.
+	•	Team orders supported in races.
+
+Contracts & PR
+	•	Contracts tab shows offers first, PR/publicity events below.
+
+Race & Season Summaries
+	•	Add narrative variety reflecting rivalries, dramatic finishes, incidents.
+	•	Remove API key requirement.
+
+Save & Settings
+	•	Add option for using a pseudonym for the player driver (optional).
+
+Schedule & Series
+	•	Remove manual track reordering to force missed weeks in overlapping series.
+	•	Enforce logic for race days:
+	•	Cup: Sundays (night races Saturday)
+	•	Xfinity: Saturdays (night races Friday)
+	•	Trucks: Fridays (night races Thursday)
+	•	Exceptions: Indy 500 + Coke 600 same Sunday
+	•	Show race day (Fri/Sat/Sun) and expected laps in the schedule UI.
+	•	Ensure owned cars and tracks are checked; substitutes available for unowned cars:
+	•	Trucks → free truck
+	•	ARCA → Toyota GR86
+	•	Xfinity & Cup → BMW M2
+	•	Allow adding cars mid-season without starting a new save.
+	•	Ensure true-to-life schedules for Truck, Xfinity, and Cup series.
+	•	Special events have higher entry barriers (invitation or high fee).
+
+Companion Simulator Only
+	•	Entry-level series (Mini/Street Stocks) restricted to free tracks.
+	•	Higher series can use full track list.
+
+Driver Absences & Substitutes
+	•	Replace injury system with “can’t race” system (work, prior commitment, etc.).
+	•	Allow player to drive with sub or skip; AI updates standings automatically.
