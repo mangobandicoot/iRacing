@@ -1,0 +1,121 @@
+🔴 High Priority / Bugs & Critical Features
+	•	[🔴] True-to-life Truck/Xfinity/Cup schedules — real track order, race day enforcement (Cup=Sun, Xfinity=Sat, Trucks=Fri)
+	•	[🔴] Indy 500 + Coke 600 same-Sunday exception
+	•	[🔴] Remove manual track reordering for overlapping series
+	•	[🔴] Roster import — load a saved roster.json back into the app so driver stats/numbers persist across saves or can be hand-crafted in Trading Paints
+	•	[🔴] Schedule conflict logic — prevent running overlapping series races on same day
+	•	[🔴] Car ownership tracking in schedule UI — only generate races and rosters for owned cars; include substitutes for gameplay (GR86 → ARCA, BMW M2 → Xfinity/Cup, free Truck → Trucks)
+	•	[🔴] Player “can’t race” options — work/prior commitments, with choice to drive with sub or skip; AI updates standings in background
+         advancement to next tier not only locked to rep but also money. buy a new or used car to advance, scaling costs. new costs more, used carries risk of oarts being DNFd in post race if not fixed
+⸻
+
+🟡 Medium Priority / Partially Applied
+	•	[🟡] Race day display (Fri/Sat/Sun) in schedule UI along with laps and time of day
+	•	[🟡] Car substitutes (GR86/BMW M2/free Truck) — written, needs testing for mid-season addition
+	•	[🟡] “Can’t race” reframe — written, testing in schedule generation
+	•	[🟡] Player pseudonym — written
+	•	[🟡] getDisplayName helper — written
+	•	[🟡] End-of-season / advancement fees — Streets → Super Lates requires purchasing a car ($2-3k), after that teams and sponsors logic
+
+⸻
+
+🟢 Low Priority / New Enhancements
+	•	[🟢] Dev mode / tutorial — test all features quickly
+	•	[🟢] Social media posts tied to race result — generic phrasing to avoid immersion-breaking “P4 = a win”, unless can be more specific based on data
+	•	[🟢] Post-race inspection — simulate used car parts; low repair parts risk post-race DNF on inspection
+
+	•	[🟢] Add open wheel / street car career path — independent but integrated option (future enhancement)
+
+Track
+Event Name
+Typical Car Class
+Laps / Notes
+Oxford (OH)
+Oxford 250
+Super Late Models
+~250 laps
+Concord (NC)
+Concord Speedway Late Model Shootout
+Super Late Models
+~150 laps
+Five Flags
+Snowball Derby
+Super Late Models
+~300 laps
+Hickory
+Hickory 200
+Late Model
+~200 laps
+Iowa
+ARCA Menards 100 / 200
+ARCA / Late Model
+~100–200 laps
+Kern
+Kern Raceway Invitational
+Late Model / Super Late
+~150–200 laps
+Langley
+Langley Fall Classic
+Late Model
+~150 laps
+Lanier
+Lanier Super Late Shootout
+Super Late Models
+~200 laps
+Myrtle Beach
+Myrtle Beach 200
+Late Model
+~200 laps
+Nashville Fairgrounds
+Fairgrounds Fall Classic
+Late Model
+~200 laps
+New Smyrna
+World Series of Asphalt
+Late Model
+~100–150 laps
+North Wilkesboro
+Wilkes 200
+Late Model
+~200 laps
+Oswego
+Oswego Classic
+Super Late Models
+~200 laps
+Slinger
+Slinger Nationals
+Super Late Models
+~200 laps
+South Boston
+South Boston 200
+Late Model
+~200 laps
+Southern National
+Southern Nationals Classic
+Late Model
+~200 laps
+Bullring (AZ)
+The Bullring Classic
+Super Late Models
+~150 laps
+Thomson
+Thomson Fall 200
+Late Model
+~200 laps
+USA International
+USA International 200
+Super Late Models
+~200 laps
+Gateway
+Gateway Moonlight Classic
+Late Model / Super Late
+Night optional
+Lucas Oil IRP
+Lucas Oil 200
+Trucks / Late Models
+Sunday, Indy weekend overlap
+
+
+all tracks listed are capable of night races.
+ the UI should reflect this. event laps are 
+appropriate. use whatever seems normal for the event type. 
