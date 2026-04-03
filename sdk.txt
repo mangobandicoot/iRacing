@@ -1,0 +1,127 @@
+find:
+if path == '/status':
+
+look for:
+if path == '/status':
+    self._send_json({
+        ...
+    })
+
+replace with:
+if path == '/status':
+    self._send_json({
+        "iRacingConnected": reader.connected,
+        "connected": reader.connected,
+        "version": VERSION
+    })
+    return
+
+find:
+self.live_data = {
+
+look for:
+self.live_data = {
+    'positions': positions,
+    'sessionFlags': flags,
+    ...
+}
+
+replace with:
+self.live_data = {
+    "positions": positions,
+    "sessionFlags": ir['SessionFlags'] or 0,
+    "sessionTime": ir['SessionTime'] or 0,
+    "lap": ir['Lap'] or 0,
+    "totalIncidents": sum(ir['CarIdxIncidentCount'] or [])
+}
+
+find:
+def _tick_pyirsdk
+
+look for:
+ir = self._ir
+
+immediately after, add:
+now = time.time()
+positions = []
+drivers = ir['DriverInfo']['Drivers']
+
+find:
+for i, d in enumerate(drivers):
+
+if doesnt exist, find:
+for i in range(len(
+
+replace with:
+for i, d in enumerate(drivers):
+    car_num = d['CarNumber']
+    name = d['UserName']
+
+    pos = ir['CarIdxPosition'][i] if 'CarIdxPosition' in ir else i + 1
+
+    positions.append({
+        "pos": pos,
+        "name": name,
+        "carNum": car_num
+    })
+
+    # --- INCIDENT TRACKING ---
+    inc = ir['CarIdxIncidentCount'][i] or 0
+    prev = self.last_incidents.get(i, 0)
+
+    if inc > prev:
+        self.watch_for_spin[i] = now
+
+        # RANDOM FAILURE (3%)
+        if random.random() < 0.03:
+            self.send_chat_command(f"/black {car_num}")
+
+    self.last_incidents[i] = inc
+
+    # --- SPIN DETECTION ---
+    speed = (ir['CarIdxSpeed'][i] or 0) * 2.237
+    yaw = abs(ir['CarIdxYawRate'][i] or 0)
+
+    is_spinning = (
+        yaw > 0.5 and
+        speed < 40 and
+        ir['CarIdxTrackSurface'][i] == 3
+    )
+
+    if i in self.watch_for_spin:
+        if now - self.watch_for_spin[i] < 3:
+            if is_spinning:
+                self.slow_cars[i] = now
+                del self.watch_for_spin[i]
+        else:
+            del self.watch_for_spin[i]
+
+    # --- DELAYED YELLOW ---
+    if i in self.slow_cars:
+        if speed > 50:
+            del self.slow_cars[i]
+        elif now - self.slow_cars[i] > 7:
+            self.send_chat_command("/yellow")
+            self.slow_cars.clear()
+            break
+
+find:
+def __init__(
+
+add inside:
+self.slow_cars = {}
+self.watch_for_spin = {}
+self.last_incidents = {}
+
+find:
+def send_chat_command
+
+replace with:
+def send_chat_command(self, cmd):
+    try:
+        self._ir.chat_command(1)
+        time.sleep(0.05)
+        self._ir.chat_command(3, cmd)
+    except Exception as e:
+        print("Chat command failed:", e)
+
