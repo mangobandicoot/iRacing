@@ -1,3 +1,20 @@
+    def do_GET(self):
+        self.send_response(200)
+        # --- CRITICAL: Add these three lines ---
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.send_header('Content-Type', 'application/json')
+        self.end_headers()
+
+        if self.path == '/live':
+            with reader._lock: 
+                self.wfile.write(json.dumps(reader.live_data).encode())
+        else: 
+            self.wfile.write(json.dumps({'iRacingConnected': reader.connected}).encode())
+
+
+
 """
 Race Weekend Bridge — Hardcore Race Director v1.3.0
 - Reality-based Failure logic (DNFs included)
