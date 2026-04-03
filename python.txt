@@ -167,3 +167,25 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+add to html in "render" section
+
+// Display repair status if timer is active
+if (_sdkLiveData.repair_timer > 0) {
+    const isTerminal = _sdkLiveData.is_terminal;
+    return h('div', { 
+        style: { 
+            background: isTerminal ? '#450a0a' : '#1e1b4b', 
+            borderLeft: `4px solid ${isTerminal ? '#ef4444' : '#6366f1'}`,
+            padding: '12px', marginTop: '10px', borderRadius: '4px'
+        } 
+    }, [
+        h('div', { style: { fontWeight: 'bold', color: 'white' } }, 
+            isTerminal ? '❌ RACE ENDED' : '🔧 PIT REPAIRS IN PROGRESS'),
+        h('div', { style: { fontSize: '13px', color: '#cbd5e1' } }, _sdkLiveData.repair_reason),
+        h('div', { style: { fontSize: '20px', fontFamily: 'monospace', marginTop: '5px' } }, 
+            isTerminal ? '--:--' : _sdkLiveData.repair_timer + 's')
+    ]);
+}
+
