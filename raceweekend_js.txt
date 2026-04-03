@@ -143,3 +143,8 @@ function updateSdkStatusUI() {
 
 // Auto-start
 setTimeout(sdkStart, 2000);
+
+add somewhere in html
+
+<div id="sdk-status-container"></div>
+
