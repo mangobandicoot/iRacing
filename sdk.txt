@@ -1,195 +1,139 @@
 find:
-if path == '/status':
+import os
+from http.server import HTTPServer, BaseHTTPRequestHandler
 
-look for:
-if path == '/status':
-    self._send_json({
-        ...
-    })
+replace:
+import os
+import math
+import random
+from http.server import HTTPServer, BaseHTTPRequestHandler
 
-replace with:
-if path == '/status':
-    self._send_json({
-        "iRacingConnected": reader.connected,
-        "connected": reader.connected,
-        "version": VERSION
-    })
-    return
-
-find:
-self.live_data = {
-
-look for:
-self.live_data = {
-    'positions': positions,
-    'sessionFlags': flags,
-    ...
-}
-
-replace with:
-self.live_data = {
-    "positions": positions,
-    "sessionFlags": ir['SessionFlags'] or 0,
-    "sessionTime": ir['SessionTime'] or 0,
-    "lap": ir['Lap'] or 0,
-    "totalIncidents": sum(ir['CarIdxIncidentCount'] or [])
+# Configuration for Simulation Drama
+MECHANICAL_ISSUES = {
+    "Engine Overheating": (15, 30),
+    "Oil Pressure Drop": (20, 45), # Triggers a delayed yellow flag
+    "Suspension Vibration": (5, 15),
+    "Electrical Glitch": (2, 8)
 }
 
 find:
-def _tick_pyirsdk
+        self.pending_results = None
 
-look for:
-ir = self._ir
-
-immediately after, add:
-now = time.time()
-positions = []
-drivers = ir['DriverInfo']['Drivers']
+replace:
+        self.pending_results = None
+        # --- Race Control State ---
+        self.last_incidents = {}
+        self.last_random_roll_time = 0
+        self.last_gear = 0
+        self.overrev_count = 0 
+        self.overrev_threshold = 3 # Strikes before a failure chance starts
+        self.spin_start_time = None
+        self.oil_leak_yellow_time = 0 
 
 find:
-for i, d in enumerate(drivers):
-
-if doesnt exist, find:
-for i in range(len(
+Find (The entire tick method logic):
+Note: Look for where your bridge reads telemetry from iRacing.
 
 replace with:
-for i, d in enumerate(drivers):
-    car_num = d['CarNumber']
-    name = d['UserName']
+    def tick(self):
+        # ... [Your existing code to fetch 'ir' data] ...
+        
+        # Ensure the app sees we are connected
+        self.connected = True 
 
-    pos = ir['CarIdxPosition'][i] if 'CarIdxPosition' in ir else i + 1
+        # --- 1. TRANSMISSION WEAR & TEAR ---
+        curr_gear = ir['Gear'] or 0
+        curr_rpm = ir['RPM'] or 0
+        if curr_gear < self.last_gear and curr_gear > 0:
+            if curr_rpm > 8200: # Threshold for a 'bad' downshift
+                self.overrev_count += 1
+                print(f"[Bridge] Warning: Overrev {self.overrev_count}/{self.overrev_threshold}")
+                if self.overrev_count >= self.overrev_threshold:
+                    if random.random() < 0.40: # 40% chance of failure after threshold
+                        self.send_chat_command(f"TRANSMISSION FAILURE: Broken Gear Sync. {random.randint(20,40)}s repair.")
+                        self.send_chat_command(f"/black {ir['PlayerCarIdx']}")
+                        self.overrev_count = 0 # Reset after "repair"
+        self.last_gear = curr_gear
 
-    positions.append({
-        "pos": pos,
-        "name": name,
-        "carNum": car_num
-    })
+        # --- 2. SPIN DETECTION (1.5s orientation check) ---
+        vx, vy = ir['VelocityX'] or 0, ir['VelocityY'] or 0
+        vel_mag = math.sqrt(vx**2 + vy**2)
+        is_sideways = False
+        if vel_mag > 7: # Only check if moving > 15mph
+            travel_angle = math.degrees(math.atan2(vy, vx))
+            heading_angle = math.degrees(ir['Yaw'] or 0)
+            if abs((travel_angle - heading_angle + 180) % 360 - 180) > 45:
+                is_sideways = True
 
-    # --- INCIDENT TRACKING ---
-    inc = ir['CarIdxIncidentCount'][i] or 0
-    prev = self.last_incidents.get(i, 0)
-
-    if inc > prev:
-        self.watch_for_spin[i] = now
-
-        # RANDOM FAILURE (3%)
-        if random.random() < 0.03:
-            self.send_chat_command(f"/black {car_num}")
-
-    self.last_incidents[i] = inc
-
-    # --- SPIN DETECTION ---
-    speed = (ir['CarIdxSpeed'][i] or 0) * 2.237
-    yaw = abs(ir['CarIdxYawRate'][i] or 0)
-
-    is_spinning = (
-        yaw > 0.5 and
-        speed < 40 and
-        ir['CarIdxTrackSurface'][i] == 3
-    )
-
-    if i in self.watch_for_spin:
-        if now - self.watch_for_spin[i] < 3:
-            if is_spinning:
-                self.slow_cars[i] = now
-                del self.watch_for_spin[i]
+        if is_sideways:
+            if self.spin_start_time is None: self.spin_start_time = time.time()
+            elif time.time() - self.spin_start_time > 1.5:
+                self.send_chat_command("CAUTION: Incident on track. YELLOW FLAG.")
+                self.send_chat_command("/yellow")
+                self.spin_start_time = None
         else:
-            del self.watch_for_spin[i]
+            self.spin_start_time = None
 
-    # --- DELAYED YELLOW ---
-    if i in self.slow_cars:
-        if speed > 50:
-            del self.slow_cars[i]
-        elif now - self.slow_cars[i] > 7:
+        # --- 3. RANDOM EVENTS (Debris & Mechanical) ---
+        curr_time = time.time()
+        # Only roll in 'Race' sessions (State 4) every 60 seconds
+        if ir['SessionState'] == 4 and (curr_time - self.last_random_roll_time > 60):
+            self.last_random_roll_time = curr_time
+            if random.random() < 0.02: # 2% Debris Yellow
+                self.send_chat_command("DEBRIS ON TRACK. YELLOW FLAG.")
+                self.send_chat_command("/yellow")
+            elif random.random() < 0.01: # 1% Mechanical Failure
+                issue = random.choice(list(MECHANICAL_ISSUES.keys()))
+                min_t, max_t = MECHANICAL_ISSUES[issue]
+                self.send_chat_command(f"MECHANICAL: {issue}. {random.randint(min_t, max_t)}s repair.")
+                self.send_chat_command(f"/black {ir['PlayerCarIdx']}")
+                if "Oil" in issue: self.oil_leak_yellow_time = curr_time + 20
+
+        # --- 4. DELAYED OIL YELLOW ---
+        if self.oil_leak_yellow_time > 0 and curr_time > self.oil_leak_yellow_time:
+            self.send_chat_command("YELLOW FLAG: Oil on track from previous failure.")
             self.send_chat_command("/yellow")
-            self.slow_cars.clear()
-            break
+            self.oil_leak_yellow_time = 0
+
+in raceweekend_sdk.js
+find:
+const SDK_URL = 'http://127.0.0.1:54321';
+
+replace:
+const SDK_URL = 'http://localhost:54321'; // Resolves faster and avoids some CORS blocks
 
 find:
-def __init__(
+async function sdkBlackFlag(carNum) {
+    return await sdkSendCommand('/black ' + carNum);
+}
 
-add inside:
-self.slow_cars = {}
-self.watch_for_spin = {}
-self.last_incidents = {}
+replace:
+async function sdkBlackFlag(carNum) {
+    return await sdkSendCommand('/black ' + carNum);
+}
 
-find:
-def send_chat_command
+async function sdkYellowFlag() {
+    return await sdkSendCommand('/yellow');
+}
 
-replace with:
-def send_chat_command(self, cmd):
-    try:
-        self._ir.chat_command(1)
-        time.sleep(0.05)
-        self._ir.chat_command(3, cmd)
-    except Exception as e:
-        print("Chat command failed:", e)
+async function sdkClearFlag(carNum) {
+    return await sdkSendCommand('/clear ' + carNum);
+}
+
+in index.html find:
+        isConnected && _sdkStatus.session_finished ? h('div', { ... }, '✅ Race result ready...') : null,
+
+replace:
+        isConnected && _sdkStatus.session_finished ? h('div', {
+            style: { marginTop: '10px', background: '#060A10', borderRadius: '8px', padding: '10px 14px',
+                     fontSize: '13px', color: '#10B981', border: '1px solid #10B98144' }
+        }, '✅ Race result ready — click Import to load it into your schedule.') : null,
+
+        _sdkLiveData && (_sdkLiveData.sessionFlags & 0x0004) ? h('div', {
+            style: { marginTop: '10px', background: '#451a03', borderRadius: '8px', padding: '10px 14px',
+                     fontSize: '13px', color: '#f59e0b', border: '1px solid #f59e0b44', fontWeight: 'bold', textAlign: 'center' }
+        }, '⚠️ YELLOW FLAG — Caution is active!') : null,
 
 
-find instead:
-CarIdxLapDistPct
 
-for i, s in enumerate(ir['CarIdxLapDistPct'] or []):
-
-replace with:
-for i, _ in enumerate(ir['CarIdxLapDistPct'] or []):
-    # skip invalid drivers
-    if i >= len(ir['DriverInfo']['Drivers']):
-        continue
-
-    driver = ir['DriverInfo']['Drivers'][i]
-    car_num = driver['CarNumber']
-    name = driver['UserName']
-
-    pos = ir['CarIdxPosition'][i] if 'CarIdxPosition' in ir else i + 1
-
-    positions.append({
-        "pos": pos,
-        "name": name,
-        "carNum": car_num
-    })
-
-    # --- INCIDENT TRACKING ---
-    inc = ir['CarIdxIncidentCount'][i] or 0
-    prev = self.last_incidents.get(i, 0)
-
-    if inc > prev:
-        self.watch_for_spin[i] = now
-
-        # RANDOM FAILURE (3%)
-        if random.random() < 0.03:
-            self.send_chat_command(f"/black {car_num}")
-
-    self.last_incidents[i] = inc
-
-    # --- SPIN DETECTION ---
-    speed = (ir['CarIdxSpeed'][i] or 0) * 2.237
-    yaw = abs(ir['CarIdxYawRate'][i] or 0)
-
-    is_spinning = (
-        yaw > 0.5 and
-        speed < 40 and
-        ir['CarIdxTrackSurface'][i] == 3
-    )
-
-    # --- WATCH WINDOW ---
-    if i in self.watch_for_spin:
-        if now - self.watch_for_spin[i] < 3:
-            if is_spinning:
-                self.slow_cars[i] = now
-                del self.watch_for_spin[i]
-        else:
-            del self.watch_for_spin[i]
-
-    # --- DELAYED YELLOW ---
-    if i in self.slow_cars:
-        if speed > 50:
-            del self.slow_cars[i]
-        elif now - self.slow_cars[i] > 7:
-            self.send_chat_command("/yellow")
-            self.slow_cars.clear()
-            break
-
-add above prior:
-positions = []
 
