@@ -1,0 +1,145 @@
+// ─── Race Weekend SDK Integration ─────────────────────────────────────────────
+// Polls the local bridge at localhost:54321
+// Handles automated flags, repair timers, and session results
+
+const SDK_URL = 'http://localhost:54321'; 
+const SDK_POLL_MS = 500; // Faster polling for real-time repair timers
+const SDK_RESULTS_POLL_MS = 3000; 
+
+var _sdkPollInterval = null;
+var _sdkResultsPollInterval = null;
+var _sdkConnected = false;
+var _sdkLiveData = null;
+var _sdkSessionData = null;
+var _sdkResultsPending = false;
+
+// ─── Connection & Status ──────────────────────────────────────────────────────
+async function sdkCheckStatus() {
+    try {
+        var resp = await fetch(SDK_URL + '/status', { signal: AbortSignal.timeout(1000) });
+        if (!resp.ok) return false;
+        var data = await resp.json();
+        return data.iRacingConnected === true;
+    } catch (e) {
+        return false;
+    }
+}
+
+async function sdkStart() {
+    var connected = await sdkCheckStatus();
+    _sdkConnected = connected;
+    
+    if (connected) {
+        console.log("SDK: Connected to iRacing Bridge");
+        if (_sdkPollInterval) clearInterval(_sdkPollInterval);
+        _sdkPollInterval = setInterval(sdkPollLive, SDK_POLL_MS);
+
+        if (_sdkResultsPollInterval) clearInterval(_sdkResultsPollInterval);
+        _sdkResultsPollInterval = setInterval(sdkCheckResults, SDK_RESULTS_POLL_MS);
+    }
+    updateSdkStatusUI();
+}
+
+function sdkStop() {
+    clearInterval(_sdkPollInterval);
+    clearInterval(_sdkResultsPollInterval);
+    _sdkConnected = false;
+    _sdkLiveData = null;
+    updateSdkStatusUI();
+}
+
+// ─── Telemetry Polling ────────────────────────────────────────────────────────
+async function sdkPollLive() {
+    try {
+        var resp = await fetch(SDK_URL + '/live');
+        if (resp.ok) {
+            _sdkLiveData = await resp.json();
+            _sdkConnected = true;
+        } else {
+            _sdkConnected = false;
+        }
+    } catch (e) {
+        _sdkConnected = false;
+    }
+    updateSdkStatusUI();
+}
+
+// ─── Command Management ───────────────────────────────────────────────────────
+async function sdkSendCommand(cmd) {
+    try {
+        await fetch(SDK_URL + '/command', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cmd: cmd })
+        });
+    } catch (e) {
+        console.error("SDK: Failed to send command", e);
+    }
+}
+
+// Flags & Admin Commands
+function sdkBlackFlag(carNum) { sdkSendCommand('/black ' + carNum); }
+function sdkYellowFlag() { sdkSendCommand('/yellow'); }
+function sdkClearFlag(carNum) { sdkSendCommand('/clear ' + carNum); }
+function sdkWaveAround(carNum) { sdkSendCommand('/wave ' + carNum); }
+
+// ─── Results Management ───────────────────────────────────────────────────────
+async function sdkCheckResults() {
+    if (_sdkResultsPending) return;
+    try {
+        var resp = await fetch(SDK_URL + '/results');
+        if (resp.ok) {
+            var data = await resp.json();
+            if (data && data.drivers) {
+                _sdkResultsPending = true;
+                _sdkSessionData = data;
+                updateSdkStatusUI();
+            }
+        }
+    } catch (e) {}
+}
+
+async function sdkAckResults() {
+    try {
+        await fetch(SDK_URL + '/ack', { method: 'POST' });
+        _sdkResultsPending = false;
+        _sdkSessionData = null;
+        updateSdkStatusUI();
+    } catch (e) {}
+}
+
+// ─── UI Rendering Helper ──────────────────────────────────────────────────────
+function updateSdkStatusUI() {
+    // This looks for the 'sdk-status-container' in your HTML
+    var container = document.getElementById('sdk-status-container');
+    if (!container) return;
+
+    // We use a simple render to show the connection and REPAIR TIMER
+    var statusText = _sdkConnected ? '🟢 iRacing Connected' : '🔴 iRacing Disconnected';
+    var repairHtml = '';
+
+    if (_sdkLiveData && _sdkLiveData.repair_timer > 0) {
+        var color = _sdkLiveData.is_terminal ? '#ff4d4d' : '#f39c12';
+        var label = _sdkLiveData.is_terminal ? 'TERMINAL FAILURE' : 'PIT REPAIRS';
+        repairHtml = `
+            <div style="margin-top:10px; padding:8px; background:rgba(0,0,0,0.5); border-left:4px solid ${color};">
+                <div style="font-weight:bold; color:${color}">${label}</div>
+                <div style="font-size:12px;">${_sdkLiveData.repair_reason}</div>
+                <div style="font-family:monospace; font-size:18px;">${_sdkLiveData.repair_timer}s</div>
+            </div>
+        `;
+    }
+
+    container.innerHTML = `
+        <div style="font-size:11px; color:#aaa; margin-bottom:5px;">${statusText}</div>
+        ${repairHtml}
+    `;
+
+    // Trigger result banner if needed
+    if (_sdkResultsPending) {
+        // Logic to show the "Import Results" button in the main UI
+    }
+}
+
+// Auto-start
+setTimeout(sdkStart, 2000);
