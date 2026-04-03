@@ -1,0 +1,73 @@
+// --- ─── SDK STATUS & RACE CONTROL UI ────────────────────────────────────────── ---
+h('div', { 
+    style: { 
+        background: '#0F172A', 
+        border: '1px solid #1E293B', 
+        borderRadius: '12px', 
+        padding: '16px', 
+        marginTop: '20px' 
+    } 
+}, [
+    h('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' } }, [
+        h('h3', { style: { fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94A3B8' } }, 'iRacing Live Bridge'),
+        h('span', { 
+            style: { 
+                fontSize: '11px', 
+                padding: '2px 8px', 
+                borderRadius: '10px', 
+                background: _sdkConnected ? '#064E3B' : '#450A0A', 
+                color: _sdkConnected ? '#34D399' : '#F87171',
+                border: `1px solid ${_sdkConnected ? '#059669' : '#B91C1C'}`
+            } 
+        }, _sdkConnected ? 'CONNECTED' : 'DISCONNECTED')
+    ]),
+
+    // --- 1. REPAIR TIMER & TERMINAL DAMAGE ALERT ---
+    _sdkLiveData && _sdkLiveData.repair_timer > 0 ? h('div', { 
+        style: { 
+            background: _sdkLiveData.is_terminal ? '#450a0a' : '#1e1b4b', 
+            border: `1px solid ${_sdkLiveData.is_terminal ? '#991b1b' : '#3730a3'}`,
+            padding: '12px', borderRadius: '8px', marginBottom: '12px', textAlign: 'center'
+        } 
+    }, [
+        h('div', { style: { fontWeight: 'bold', color: 'white', fontSize: '14px' } }, 
+            _sdkLiveData.is_terminal ? '❌ CRITICAL MECHANICAL FAILURE' : '🔧 PIT REPAIRS IN PROGRESS'),
+        h('div', { style: { fontSize: '12px', color: '#cbd5e1', margin: '4px 0' } }, _sdkLiveData.repair_reason),
+        h('div', { style: { fontSize: '28px', fontFamily: '"Share Tech Mono", monospace', color: '#FFF' } }, 
+            _sdkLiveData.is_terminal ? 'DNF' : _sdkLiveData.repair_timer + 's'),
+        _sdkLiveData.is_terminal ? h('div', { style: { fontSize: '10px', color: '#f87171', marginTop: '4px' } }, 'CAR IS UNREPAIRABLE. PARK THE VEHICLE.') : null
+    ]) : null,
+
+    // --- 2. YELLOW FLAG ALERT ---
+    _sdkLiveData && (_sdkLiveData.sessionFlags & 0x0004) ? h('div', {
+        style: { 
+            background: '#78350f', color: '#fbbf24', padding: '10px', 
+            borderRadius: '8px', textAlign: 'center', fontWeight: 'bold', 
+            marginBottom: '12px', border: '1px solid #b45309', animation: 'pulse 1.5s infinite' 
+        }
+    }, '⚠️ YELLOW FLAG - CAUTION ACTIVE') : null,
+
+    // --- 3. RESULTS & CONTROL BUTTONS ---
+    h('div', { style: { fontSize: '13px', color: '#64748B', marginBottom: '12px' } }, 
+        _sdkConnected ? 'Bridge is active. Mechanical failures and spins are being monitored.' : 'Start bridge.py to enable Hardcore Race Control.'
+    ),
+
+    h('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap' } }, [
+        mkBtn(_sdkResultsPending ? '📥 Import Race Result' : '📥 Check for Result', 'btn btn-secondary', function() {
+            if (_sdkResultsPending) sdkInjectResult();
+            else sdkCheckResults();
+        }),
+        mkBtn('🔄 Sync', 'btn btn-sm btn-ghost', function() {
+            sdkStart();
+        })
+    ])
+]),
+
+// --- 4. QUICK ADMIN COMMANDS ---
+_sdkConnected ? h('div', { style: { marginTop: '12px', padding: '10px', background: '#111', borderRadius: '8px' } }, [
+    h('div', { style: { fontSize: '10px', color: '#555', marginBottom: '8px', textAlign: 'center' } }, 'MANUAL OVERRIDES'),
+    h('div', { style: { display: 'flex', gap: '5px', justifyContent: 'center' } }, [
+        mkBtn('🚩 Yellow', 'btn btn-xs btn-warning', function() { sdkYellowFlag(); }),
+        mkBtn('✅ Clear Me', 'btn btn-xs btn-ghost', function() { sdkClearFlag(_sdkLiveData.player_idx); })
+    ])
+]) : null
