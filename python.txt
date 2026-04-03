@@ -1,0 +1,169 @@
+"""
+Race Weekend Bridge — Hardcore Race Director v1.3.0
+- Reality-based Failure logic (DNFs included)
+- Automatic /clear command handling
+- Hidden 'Terminal Damage' probability
+- Spin and Transmission Abuse monitoring
+"""
+
+import sys
+import time
+import json
+import threading
+import math
+import random
+from http.server import HTTPServer, BaseHTTPRequestHandler
+
+PORT = 54321
+VERSION = "1.3.0"
+
+# --- THE BRUTAL TABLE (Seconds) ---
+# 3600s+ = Race Ended. 
+MECHANICAL_ISSUES = {
+    "Engine Failure": (3600, 7200, 1.0),      # 100% chance to be terminal
+    "Transmission Explosion": (3600, 5400, 1.0), 
+    "Fluid Leak": (60, 180, 0.05),            # 5% chance it becomes terminal engine failure
+    "Suspension Damage": (120, 300, 0.15),    # 15% chance it's a 'Broken Axle' (Terminal)
+    "Electrical Glitch": (10, 30, 0.0)        # Always repairable
+}
+
+class IRacingReader:
+    def __init__(self):
+        self.connected = False
+        self._lock = threading.Lock()
+        self.live_data = {}
+        
+        # --- Race Control State ---
+        self.last_random_roll_time = 0
+        self.last_gear = 0
+        self.overrev_count = 0 
+        self.overrev_threshold = 3 
+        self.spin_start_time = None
+        self.oil_leak_yellow_time = 0 
+        
+        # --- Repair & Auto-Clear State ---
+        self.repair_release_time = 0
+        self.current_failure_reason = ""
+        self.is_terminal = False
+
+    def send_chat_command(self, cmd):
+        """Broadcasts command to iRacing."""
+        print(f"[DIRECTOR] {cmd}")
+        # Implementation depends on your SDK wrapper (e.g. irsdk.broadcast_msg)
+        return True
+
+    def trigger_penalty(self, car_idx, name, min_t, max_t, terminal_chance):
+        """Calculates if damage is repairable and sets the timer."""
+        curr_time = time.time()
+        
+        # Determine if this specific instance is terminal
+        if random.random() < terminal_chance:
+            self.is_terminal = True
+            wait_time = random.randint(3600, 7200)
+            display_reason = f"TERMINAL: {name} (Unrepairable)"
+        else:
+            self.is_terminal = False
+            wait_time = random.randint(min_t, max_t)
+            display_reason = name
+
+        self.repair_release_time = curr_time + wait_time
+        self.current_failure_reason = display_reason
+        
+        # Broadcast to iRacing Chat
+        time_msg = "RACE ENDED / PARKED" if self.is_terminal or wait_time >= 3600 else f"{wait_time}s REPAIR"
+        self.send_chat_command(f"OFFICIAL: {display_reason}. {time_msg}.")
+        self.send_chat_command(f"/black {car_idx}")
+
+    def tick(self):
+        """The heart of the simulation logic."""
+        # Replace with your actual SDK data fetching (ir = irsdk.SDK().data)
+        ir = self.get_telemetry_placeholder() 
+        if not ir:
+            self.connected = False
+            return
+
+        self.connected = True
+        curr_time = time.time()
+
+        # --- 1. TRANSMISSION ABUSE ---
+        curr_gear = ir.get('Gear', 0)
+        curr_rpm = ir.get('RPM', 0)
+        if curr_gear < self.last_gear and curr_gear > 0:
+            if curr_rpm > 8200: 
+                self.overrev_count += 1
+                if self.overrev_count >= self.overrev_threshold:
+                    if random.random() < 0.40:
+                        self.trigger_penalty(ir.get('PlayerCarIdx'), "Transmission Explosion", 3600, 3600, 1.0)
+        self.last_gear = curr_gear
+
+        # --- 2. SPIN DETECTION (1.5s) ---
+        vx, vy = ir.get('VelocityX', 0), ir.get('VelocityY', 0)
+        if math.sqrt(vx**2 + vy**2) > 7:
+            diff = abs((math.degrees(math.atan2(vy, vx)) - math.degrees(ir.get('Yaw', 0)) + 180) % 360 - 180)
+            if diff > 45:
+                if self.spin_start_time is None: self.spin_start_time = curr_time
+                elif curr_time - self.spin_start_time > 1.5:
+                    self.send_chat_command("CAUTION: Incident on track. /yellow")
+                    self.spin_start_time = None
+            else: self.spin_start_time = None
+
+        # --- 3. RANDOM EVENTS ---
+        if ir.get('SessionState') == 4 and (curr_time - self.last_random_roll_time > 60):
+            self.last_random_roll_time = curr_time
+            roll = random.random()
+            if roll < 0.02: # Debris
+                self.send_chat_command("OFFICIAL: Debris on track. /yellow")
+            elif roll < 0.03: # Mechanical (1%)
+                issue = random.choice(list(MECHANICAL_ISSUES.keys()))
+                min_t, max_t, t_chance = MECHANICAL_ISSUES[issue]
+                self.trigger_penalty(ir.get('PlayerCarIdx'), issue, min_t, max_t, t_chance)
+                if "Fluid" in issue or "Engine" in issue:
+                    self.oil_leak_yellow_time = curr_time + 20
+
+        # --- 4. DELAYED OIL YELLOW ---
+        if self.oil_leak_yellow_time > 0 and curr_time > self.oil_leak_yellow_time:
+            self.send_chat_command("CAUTION: Oil on track. /yellow")
+            self.oil_leak_yellow_time = 0
+
+        # --- 5. AUTO-CLEAR & DATA PACKAGING ---
+        remaining = 0
+        if self.repair_release_time > 0:
+            remaining = max(0, int(self.repair_release_time - curr_time))
+            if remaining == 0 and not self.is_terminal:
+                self.send_chat_command(f"/clear {ir.get('PlayerCarIdx')}")
+                self.send_chat_command("REPAIRS COMPLETE. RELEASE CAR.")
+                self.repair_release_time = 0
+                self.current_failure_reason = ""
+
+        with self._lock:
+            self.live_data = {
+                'iRacingConnected': True,
+                'sessionFlags': ir.get('SessionFlags', 0),
+                'repair_timer': remaining,
+                'repair_reason': self.current_failure_reason,
+                'is_terminal': self.is_terminal,
+                'overrevs': self.overrev_count
+            }
+
+    def get_telemetry_placeholder(self):
+        # Implementation of your shared memory reader goes here
+        return {'Gear':0, 'RPM':0, 'VelocityX':0, 'VelocityY':0, 'Yaw':0, 'SessionState':4, 'SessionFlags':0, 'PlayerCarIdx':0}
+
+# --- HTTP SERVER ---
+class BridgeHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+        if self.path == '/live':
+            with reader._lock: self.wfile.write(json.dumps(reader.live_data).encode())
+        else: self.wfile.write(json.dumps({'status': reader.connected}).encode())
+
+reader = IRacingReader()
+def main():
+    threading.Thread(target=lambda: [reader.tick() or time.sleep(0.5) for _ in iter(int, 1)], daemon=True).start()
+    HTTPServer(('0.0.0.0', PORT), BridgeHandler).serve_forever()
+
+if __name__ == "__main__":
+    main()
